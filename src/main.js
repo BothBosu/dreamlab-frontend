@@ -1,14 +1,23 @@
-import './assets/main.css'
+// src/main.js
+import { createApp } from 'vue';
+import { createPinia } from 'pinia';
+import App from './App.vue';
+import router from './router';
+import axios from 'axios';
 
-import { createApp } from 'vue'
-import { createPinia } from 'pinia'
+// Configure Axios
+axios.defaults.baseURL = 'http://localhost:8080';
+axios.defaults.headers.common['Content-Type'] = 'application/json';
+axios.defaults.withCredentials = true;
 
-import App from './App.vue'
-import router from './router'
+// Create the application
+const app = createApp(App);
 
-const app = createApp(App)
+// Use Pinia for state management
+app.use(createPinia());
 
-app.use(createPinia())
-app.use(router)
+// Use the router
+app.use(router);
 
-app.mount('#app')
+// Mount the application
+app.mount('#app');
