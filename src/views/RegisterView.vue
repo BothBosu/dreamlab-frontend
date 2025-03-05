@@ -154,7 +154,7 @@ export default defineComponent({
     radial-gradient(circle, rgba(25, 25, 25, 0.8) 0%, rgba(5, 5, 5, 0.9) 100%),
     linear-gradient(45deg, rgba(0, 0, 255, 0.1) 0%, rgba(0, 0, 0, 0.1) 100%);
   color: #f0f0f0;
-  font-family: 'Orbitron', 'Roboto', sans-serif;
+  font-family: 'Rajdhani', 'Roboto', sans-serif;
 }
 
 .register-card {
@@ -240,7 +240,7 @@ input {
   border: 1px solid rgba(60, 60, 60, 0.5);
   border-radius: 4px;
   color: #f0f0f0;
-  font-family: 'Orbitron', 'Roboto', sans-serif;
+  font-family: 'Rajdhani', 'Roboto', sans-serif;
   font-size: 1rem;
   transition: all 0.3s;
 }
@@ -282,7 +282,7 @@ button {
   color: white;
   border: none;
   border-radius: 4px;
-  font-family: 'Orbitron', 'Roboto', sans-serif;
+  font-family: 'Rajdhani', 'Roboto', sans-serif;
   font-size: 1rem;
   letter-spacing: 1.5px;
   cursor: pointer;

@@ -14,7 +14,7 @@ export default defineComponent({
 
 <style>
 /* Import fonts */
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&display=swap');
 
 * {
   box-sizing: border-box;
@@ -23,7 +23,7 @@ export default defineComponent({
 }
 
 html, body {
-  font-family: 'Orbitron', 'Roboto', sans-serif;
+  font-family: 'Rajdhani', 'Roboto', sans-serif;
   line-height: 1.6;
   color: #f0f0f0;
   background-color: #0a0a0a;
