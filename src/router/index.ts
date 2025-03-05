@@ -1,14 +1,18 @@
-// src/router/index.js
-import { createRouter, createWebHistory } from 'vue-router';
+// src/router/index.ts
+import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import LoginView from '@/views/LoginView.vue';
+import RegisterView from '@/views/RegisterView.vue';
 
 // Placeholder for Dashboard
 const DashboardView = {
-  template: '<div>Dashboard (Protected Page)</div>'
+  template: '<div class="dashboard-container"><h1>Dashboard (Protected Page)</h1><p>Welcome to the futuristic dashboard.</p></div>',
+  setup() {
+    return {}
+  }
 };
 
-const routes = [
+const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
     redirect: '/login'
@@ -17,6 +21,12 @@ const routes = [
     path: '/login',
     name: 'login',
     component: LoginView,
+    meta: { requiresAuth: false }
+  },
+  {
+    path: '/register',
+    name: 'register',
+    component: RegisterView,
     meta: { requiresAuth: false }
   },
   {
@@ -46,7 +56,7 @@ router.beforeEach(async (to, from, next) => {
   if (requiresAuth && !authStore.isAuthenticated) {
     // Redirect to login if trying to access a protected route
     next({ name: 'login' });
-  } else if (to.name === 'login' && authStore.isAuthenticated) {
+  } else if ((to.name === 'login' || to.name === 'register') && authStore.isAuthenticated) {
     // Redirect to dashboard if already logged in
     next({ name: 'dashboard' });
   } else {
