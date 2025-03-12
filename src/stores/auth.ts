@@ -18,7 +18,10 @@ export const useAuthStore = defineStore('auth', {
   async login(username: string, password: string): Promise<{ success: boolean; message?: string }> {
     try {
       const response = await axios.post<LoginResponse>(
+        // local
         'http://localhost:8080/api/auth/login',
+        // deploy
+        // 'https://dreamlab-ai.online/api/auth/login',
           { username, password }
       );
 
@@ -50,7 +53,10 @@ export const useAuthStore = defineStore('auth', {
   async register(username: string, password: string): Promise<{ success: boolean; message?: string }> {
     try {
       const response = await axios.post<RegisterResponse>(
-        'http://localhost:8080/api/auth/register',
+        // local
+        // 'http://localhost:8080/api/auth/register',
+        //  deploy
+        'https://dreamlab-ai.online/api/auth/register',
           { username, password }
       );
 
@@ -83,7 +89,10 @@ export const useAuthStore = defineStore('auth', {
         this.isAuthenticated = true;
 
         // Verify with backend
-        const response = await axios.get<LoginResponse>('http://localhost:8080/api/auth/status');
+        // local
+        // const response = await axios.get<LoginResponse>('http://localhost:8080/api/auth/status');
+        // deploy
+        const response = await axios.get<LoginResponse>('https://dreamlab-ai.online/api/auth/status');
         if (response.data && response.data.username) {
           return true;
         } else {
