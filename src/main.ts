@@ -6,7 +6,11 @@ import router from './router';
 import axios from 'axios';
 
 // Configure Axios
+// local
 axios.defaults.baseURL = 'http://localhost:8080';
+// deploy
+// axios.defaults.baseURL = 'https://dreamlab-ai.online'
+
 axios.defaults.headers.common['Content-Type'] = 'application/json';
 axios.defaults.withCredentials = true;
 
