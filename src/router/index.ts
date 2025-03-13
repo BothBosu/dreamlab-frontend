@@ -3,6 +3,7 @@ import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import LoginView from '@/views/LoginView.vue';
 import RegisterView from '@/views/RegisterView.vue';
+import GalleryView from '@/views/GalleryView.vue';
 
 // Placeholder for Dashboard
 const DashboardView = {
@@ -34,6 +35,12 @@ const routes: Array<RouteRecordRaw> = [
     name: 'dashboard',
     component: DashboardView,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/gallery',
+    name: 'gallery',
+    component: GalleryView,
+    meta: { requiresAuth: false }
   }
 ];
 
