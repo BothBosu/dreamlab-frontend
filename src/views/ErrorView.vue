@@ -1,6 +1,6 @@
 <!-- src/views/ErrorView.vue -->
 <template>
-  <div class="error-container">
+  <div class="error-container" :style="{ backgroundImage: `url(${selectedBackground})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }">
     <div class="error-content">
       <div class="error-logo">
         <img src="@/assets/ERROR-404-Logo.jpg" alt="ERROR 404" class="error-image" />
@@ -18,8 +18,32 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
+import { ref, onMounted } from 'vue';
 
 const router = useRouter();
+
+const backgroundOptions = [
+  'https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExcXc5bGhvZGFqMDZheG5iMDU4eGx2Zzd6ZTd6aHJxb3JoODM5Zjl1byZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/yAjIXTFgZtfn6ix3Wt/giphy.gif',
+  'https://64.media.tumblr.com/7ba22a54cb8886b38546cfa4455b1818/4a6d13ca78b9a465-d8/s540x810/13d4e445e1f92d4b4515a3dc898f8688b7dbc347.gifv',
+  'https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExbHNzemZreW51NmpibTllbHdobnJ2NXprb2ZjN21tbm5zcjk4OHJtcyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/7sUM9x7DkMVoW8WC8Y/giphy.gif',
+  'https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExYnI1ZHp3MHFtYWplaXY2ODliOHUyNGU4YzNzNGVmZGQ2NGtvaXhmZiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/YWQWLMNzjBwnahnr63/giphy.gif'
+];
+
+// Reactive reference to hold the selected background
+const selectedBackground = ref('');
+
+// Function to select a random background
+const selectRandomBackground = () => {
+  // Generate a random index between 0 and the length of backgroundOptions - 1
+  const randomIndex = Math.floor(Math.random() * backgroundOptions.length);
+  // Set the selected background to the URL at the random index
+  selectedBackground.value = backgroundOptions[randomIndex];
+};
+
+// When the component mounts, select a random background
+onMounted(() => {
+  selectRandomBackground();
+});
 
 // Function to navigate back to the previous page
 const goBack = () => {
@@ -33,13 +57,23 @@ const goBack = () => {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  /* Gradient background as fallback if background image fails to load */
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-  background-image: url('@/assets/VaporWaveBG.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
   padding: 20px;
   position: relative;
+  overflow: hidden; /* Prevents background from causing scrollbars */
+}
+
+/* Background overlay to improve content readability */
+.error-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent overlay */
+  z-index: 1;
 }
 
 .error-content {
@@ -51,6 +85,8 @@ const goBack = () => {
   backdrop-filter: blur(10px);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  z-index: 2; /* Ensures content appears above the overlay */
 }
 
 .error-logo {
