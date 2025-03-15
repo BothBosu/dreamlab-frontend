@@ -145,11 +145,6 @@
           </div>
 
           <div class="checkbox-group">
-            <input type="checkbox" id="hiresfix" v-model="settings.hiResFix" />
-            <label for="hiresfix">Hires. fix</label>
-          </div>
-
-          <div class="checkbox-group">
             <input type="checkbox" id="refiner" v-model="settings.refiner" />
             <label for="refiner">Refiner</label>
           </div>
@@ -230,7 +225,6 @@ export default defineComponent({
       seed: -1,
       batchCount: 1,
       batchSize: 1,
-      hiResFix: false,
       refiner: false
     });
 
@@ -475,6 +469,7 @@ label {
   display: block;
   margin-bottom: 0.5rem;
   font-size: 0.9rem;
+  align-content: normal;
   letter-spacing: 1px;
   color: rgba(200, 200, 200, 0.8);
 }
@@ -593,7 +588,19 @@ select {
 .checkbox-group input[type="checkbox"] {
   width: 18px;
   height: 18px;
+  margin: 0;
   cursor: pointer;
+}
+
+.checkbox-group label {
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+  color: rgba(200, 200, 200, 0.8);
 }
 
 .generate-button-container {
