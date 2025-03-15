@@ -5,6 +5,7 @@ import LoginView from '@/views/LoginView.vue';
 import RegisterView from '@/views/RegisterView.vue';
 import GalleryView from '@/views/GalleryView.vue';
 import ImageGenView from '@/views/ImageGenView.vue';
+import ErrorView from '@/views/ErrorView.vue';
 
 // Placeholder for Dashboard
 const DashboardView = {
@@ -47,6 +48,13 @@ const routes: Array<RouteRecordRaw> = [
     path: '/imagegen',
     name: 'imagegen',
     component: ImageGenView,
+    meta: { requiresAuth: false }
+  },
+  {
+    // This catch-all route must be placed last
+    path: '/:pathMatch(.*)*',
+    name: 'not-found',
+    component: ErrorView,
     meta: { requiresAuth: false }
   }
 ];

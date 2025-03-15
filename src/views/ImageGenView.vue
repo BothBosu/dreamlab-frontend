@@ -202,10 +202,10 @@ import { defineComponent, ref, reactive } from 'vue';
 import axios from 'axios';
 
 export default defineComponent({
-  name: 'ImageGenView',
+  inputPrompt: 'ImageGenView',
   setup() {
     const prompt = ref('');
-    const promptMaxLength = 500;
+    const promptMaxLength = 200;
     const charCount = ref(0);
     const isGenerating = ref(false);
     const generatedImage = ref('');
@@ -266,7 +266,7 @@ export default defineComponent({
       try {
         const response = await axios.post('/api/images/save', {
           imageUrl: generatedImage.value,
-          name: prompt.value.substring(0, 30) // Use part of the prompt as the name
+          inputPrompt: prompt.value.substring(0, 30) // Use part of the prompt as the name
         });
 
         alert('Image saved successfully!');
