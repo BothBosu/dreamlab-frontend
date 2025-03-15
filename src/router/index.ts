@@ -4,6 +4,7 @@ import { useAuthStore } from '@/stores/auth';
 import LoginView from '@/views/LoginView.vue';
 import RegisterView from '@/views/RegisterView.vue';
 import GalleryView from '@/views/GalleryView.vue';
+import ImageGenView from '@/views/ImageGenView.vue';
 
 // Placeholder for Dashboard
 const DashboardView = {
@@ -40,6 +41,12 @@ const routes: Array<RouteRecordRaw> = [
     path: '/gallery',
     name: 'gallery',
     component: GalleryView,
+    meta: { requiresAuth: false }
+  },
+  {
+    path: '/imagegen',
+    name: 'imagegen',
+    component: ImageGenView,
     meta: { requiresAuth: false }
   }
 ];
