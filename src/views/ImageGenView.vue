@@ -276,9 +276,28 @@ export default defineComponent({
       }
     };
 
-    const copyImage = () => {
-      // Implementation for copying image to clipboard
-      alert('Copy to clipboard functionality will be implemented with the actual API');
+    const copyImage = async () => {
+      if (!generatedImage.value) {
+        alert('No image to copy. Please generate an image first.');
+        return;
+      }
+
+      try {
+        const response = await fetch(generatedImage.value);
+        const blob = await response.blob();
+
+        // Check if Clipboard API with ClipboardItem is supported
+        if (navigator.clipboard && window.ClipboardItem) {
+          const item = new ClipboardItem({ [blob.type]: blob });
+          await navigator.clipboard.write([item]);
+          alert('Image copied to clipboard!');
+        } else {
+          alert('Copy to clipboard is not supported in this browser. Creating a download link instead.');
+        }
+      } catch (error) {
+        console.error('Error copying image to clipboard:', error);
+        alert('Failed to copy image to clipboard. ' + error.message);
+      }
     };
 
     const shareImage = () => {
