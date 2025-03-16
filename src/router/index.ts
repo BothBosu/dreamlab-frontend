@@ -1,11 +1,11 @@
 // src/router/index.ts
-import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
-import { useAuthStore } from '@/stores/auth';
-import LoginView from '@/views/LoginView.vue';
-import RegisterView from '@/views/RegisterView.vue';
-import GalleryView from '@/views/GalleryView.vue';
-import ImageGenView from '@/views/ImageGenView.vue';
-import ErrorView from '@/views/ErrorView.vue';
+import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import LoginView from '@/views/LoginView.vue'
+import RegisterView from '@/views/RegisterView.vue'
+import GalleryView from '@/views/GalleryView.vue'
+import ImageGenView from '@/views/ImageGenView.vue'
+import ErrorView from '@/views/ErrorView.vue'
 
 // Placeholder for Dashboard
 const DashboardView = {
@@ -13,8 +13,11 @@ const DashboardView = {
   setup() {
     return {}
   }
-};
+}
 
+/**
+ * TODO: Don't forget to change the requiresAuth meta to true when actually deploying the app
+ */
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
@@ -36,7 +39,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/dashboard',
     name: 'dashboard',
     component: DashboardView,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: false }
   },
   {
     path: '/gallery',
@@ -51,40 +54,43 @@ const routes: Array<RouteRecordRaw> = [
     meta: { requiresAuth: false }
   },
   {
-    // This catch-all route must be placed last
+    /**
+     * Catch-all route for 404 errors
+     * This catch-all route must be placed last
+     */
     path: '/:pathMatch(.*)*',
     name: 'not-found',
     component: ErrorView,
     meta: { requiresAuth: false }
   }
-];
+]
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes
-});
+})
 
 // Navigation guard for authentication
 router.beforeEach(async (to, from, next) => {
-  const authStore = useAuthStore();
-  const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
-  const isAuthenticated = authStore.isAuthenticated;
+  const authStore = useAuthStore()
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+  const isAuthenticated = authStore.isAuthenticated
 
   // If not authenticated, check auth status with backend
   if (!isAuthenticated) {
-    await authStore.checkAuthStatus();
+    await authStore.checkAuthStatus()
   }
 
   if (requiresAuth && !authStore.isAuthenticated) {
     // Redirect to login if trying to access a protected route
-    next({ name: 'login' });
+    next({ name: 'login' })
   } else if ((to.name === 'login' || to.name === 'register') && authStore.isAuthenticated) {
     // Redirect to dashboard if already logged in
-    next({ name: 'dashboard' });
+    next({ name: 'dashboard' })
   } else {
     // Otherwise proceed normally
-    next();
+    next()
   }
-});
+})
 
-export default router;
+export default router

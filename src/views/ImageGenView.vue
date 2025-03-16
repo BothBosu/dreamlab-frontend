@@ -1,5 +1,37 @@
 <template>
   <div class="imagegen-container">
+    <!-- Navbar -->
+    <div class="navbar">
+      <div class="navbar-logo">
+        <span class="logo-text">IM-GEN-SSC</span>
+      </div>
+      <div class="navbar-links">
+        <router-link to="/dashboard" class="nav-link">Dashboard</router-link>
+        <router-link to="/gallery" class="nav-link">Gallery</router-link>
+        <router-link to="/imagegen" class="nav-link active">Generate</router-link>
+      </div>
+      <div class="navbar-user-manage">
+        <!-- TODO: User Management -->
+        <!--<router-link to="/login" class="auth-link">Login</router-link>-->
+      </div>
+      <div class="mobile-menu-toggle" @click="toggleMobileMenu">
+        <div class="hamburger-icon">≡</div>
+      </div>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" :class="{ 'active': mobileMenuOpen }">
+      <router-link to="/dashboard" class="mobile-nav-link" @click="toggleMobileMenu">Dashboard
+      </router-link>
+      <router-link to="/gallery" class="mobile-nav-link" @click="toggleMobileMenu">Gallery
+      </router-link>
+      <router-link to="/imagegen" class="mobile-nav-link" @click="toggleMobileMenu">Generate
+      </router-link>
+
+      <!-- TODO: User Management -->
+      <!--<router-link to="/login" class="mobile-nav-link" @click="toggleMobileMenu">Login</router-link>-->
+    </div>
+
     <div class="imagegen-layout">
       <!-- Left Panel - Controls -->
       <div class="control-panel">
@@ -136,12 +168,14 @@
         <div v-if="activeTab === 'advanced'" class="panel-section">
           <div class="setting-group">
             <label for="batchCount">Batch count</label>
-            <input type="number" id="batchCount" v-model.number="settings.batchCount" min="1" max="4" class="numeric-input" />
+            <input type="number" id="batchCount" v-model.number="settings.batchCount" min="1"
+                   max="4" class="numeric-input" />
           </div>
 
           <div class="setting-group">
             <label for="batchSize">Batch size</label>
-            <input type="number" id="batchSize" v-model.number="settings.batchSize" min="1" max="4" class="numeric-input" />
+            <input type="number" id="batchSize" v-model.number="settings.batchSize" min="1" max="4"
+                   class="numeric-input" />
           </div>
 
           <div class="checkbox-group">
@@ -198,23 +232,26 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, reactive } from 'vue';
-import axios from 'axios';
+import { defineComponent, reactive, ref } from 'vue'
+import axios from 'axios'
+import { useRoute } from 'vue-router'
 
 export default defineComponent({
   inputPrompt: 'ImageGenView',
   setup() {
-    const prompt = ref('');
-    const promptMaxLength = 200;
-    const charCount = ref(0);
-    const isGenerating = ref(false);
-    const generatedImage = ref('');
-    const activeTab = ref('generation');
+    const prompt = ref('')
+    const promptMaxLength = 200
+    const charCount = ref(0)
+    const isGenerating = ref(false)
+    const generatedImage = ref('')
+    const activeTab = ref('generation')
+    const mobileMenuOpen = ref(false)
+    const route = useRoute()
 
     const tabs = [
       { id: 'generation', name: 'Generation' },
       { id: 'advanced', name: 'Advanced' }
-    ];
+    ]
 
     const settings = reactive({
       samplingMethod: 'dpm++',
@@ -226,84 +263,88 @@ export default defineComponent({
       batchCount: 1,
       batchSize: 1,
       refiner: false
-    });
+    })
 
     const updateCharCount = () => {
-      charCount.value = prompt.value.length;
-    };
+      charCount.value = prompt.value.length
+    }
 
     const randomizeSeed = () => {
-      settings.seed = Math.floor(Math.random() * 2147483647);
-    };
+      settings.seed = Math.floor(Math.random() * 2147483647)
+    }
+
+    const toggleMobileMenu = () => {
+      mobileMenuOpen.value = !mobileMenuOpen.value
+    }
 
     const generateImage = async () => {
       if (!prompt.value.trim()) {
-        alert('Please enter a prompt before generating an image.');
-        return;
+        alert('Please enter a prompt before generating an image.')
+        return
       }
 
-      isGenerating.value = true;
+      isGenerating.value = true
 
       try {
         const response = await axios.post('/api/images/generate', {
           prompt: prompt.value,
           settings: settings
-        });
+        })
 
         // Assuming the API returns the image URL in the response
-        generatedImage.value = response.data.imageUrl;
+        generatedImage.value = response.data.imageUrl
       } catch (error) {
-        console.error('Error generating image:', error);
-        alert('Failed to generate image. Please try again.');
+        console.error('Error generating image:', error)
+        alert('Failed to generate image. Please try again.')
       } finally {
-        isGenerating.value = false;
+        isGenerating.value = false
       }
-    };
+    }
 
     const saveImage = async () => {
-      if (!generatedImage.value) return;
+      if (!generatedImage.value) return
 
       try {
         const response = await axios.post('/api/images/save', {
           imageUrl: generatedImage.value,
           inputPrompt: prompt.value.substring(0, 30) // Use part of the prompt as the name
-        });
+        })
 
-        alert('Image saved successfully!');
+        alert('Image saved successfully!')
       } catch (error) {
-        console.error('Error saving image:', error);
-        alert('Failed to save image.');
+        console.error('Error saving image:', error)
+        alert('Failed to save image.')
       }
-    };
+    }
 
     const copyImage = async () => {
       if (!generatedImage.value) {
-        alert('No image to copy. Please generate an image first.');
-        return;
+        alert('No image to copy. Please generate an image first.')
+        return
       }
 
       try {
-        const response = await fetch(generatedImage.value);
-        const blob = await response.blob();
+        const response = await fetch(generatedImage.value)
+        const blob = await response.blob()
 
         // Check if Clipboard API with ClipboardItem is supported
         if (navigator.clipboard && window.ClipboardItem) {
-          const item = new ClipboardItem({ [blob.type]: blob });
-          await navigator.clipboard.write([item]);
-          alert('Image copied to clipboard!');
+          const item = new ClipboardItem({ [blob.type]: blob })
+          await navigator.clipboard.write([item])
+          alert('Image copied to clipboard!')
         } else {
-          alert('Copy to clipboard is not supported in this browser. Creating a download link instead.');
+          alert('Copy to clipboard is not supported in this browser. Creating a download link instead.')
         }
       } catch (error) {
-        console.error('Error copying image to clipboard:', error);
-        alert('Failed to copy image to clipboard. ' + error.message);
+        console.error('Error copying image to clipboard:', error)
+        alert('Failed to copy image to clipboard. ' + error.message)
       }
-    };
+    }
 
     const shareImage = () => {
       // Implementation for sharing image
-      alert('Share functionality will be implemented with the actual API');
-    };
+      alert('Share functionality will be implemented with the actual API')
+    }
 
     return {
       prompt,
@@ -315,37 +356,184 @@ export default defineComponent({
       generatedImage,
       activeTab,
       tabs,
+      mobileMenuOpen,
+      toggleMobileMenu,
       randomizeSeed,
       generateImage,
       saveImage,
       copyImage,
       shareImage
-    };
+    }
   }
-});
+})
 </script>
 
 <style scoped>
 .imagegen-container {
   display: flex;
-  justify-content: center;
-  align-items: center;
+  flex-direction: column;
   min-height: 100vh;
   background-color: #0a0a0a;
-  background-image:
-    radial-gradient(circle, rgba(25, 25, 25, 0.8) 0%, rgba(5, 5, 5, 0.9) 100%),
-    linear-gradient(45deg, rgba(0, 0, 255, 0.1) 0%, rgba(0, 0, 0, 0.1) 100%);
+  background-image: radial-gradient(circle, rgba(25, 25, 25, 0.8) 0%, rgba(5, 5, 5, 0.9) 100%),
+  linear-gradient(45deg, rgba(0, 0, 255, 0.1) 0%, rgba(0, 0, 0, 0.1) 100%);
   color: #f0f0f0;
   font-family: 'Rajdhani', 'Roboto', sans-serif;
-  padding: 1rem;
 }
 
+/* Navbar Styles */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  background-color: rgba(15, 15, 15, 0.9);
+  border-bottom: 1px solid rgba(50, 50, 50, 0.5);
+  box-shadow: 0 0 15px rgba(0, 150, 255, 0.2);
+  position: relative;
+  z-index: 100;
+}
+
+.navbar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 0, 128, 0.8),
+    rgba(0, 255, 255, 0.8),
+    rgba(128, 0, 255, 0.8)
+  );
+  animation: rgbBorder 5s linear infinite;
+}
+
+.navbar-logo {
+  display: flex;
+  align-items: center;
+}
+
+.logo-text {
+  font-size: 1.5rem;
+  font-weight: bold;
+  letter-spacing: 2px;
+  background: linear-gradient(45deg, #00ccff, #ff00aa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 5px rgba(0, 150, 255, 0.3);
+}
+
+.navbar-links {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.nav-link {
+  color: rgba(200, 200, 200, 0.9);
+  text-decoration: none;
+  font-size: 1rem;
+  letter-spacing: 1px;
+  transition: all 0.3s;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  border-bottom: 2px solid transparent;
+}
+
+.nav-link:hover, .nav-link.router-link-active {
+  color: rgba(0, 150, 255, 1);
+  border-bottom: 2px solid rgba(0, 150, 255, 0.9);
+}
+
+.navbar-user-manage {
+  display: flex;
+  gap: 1rem;
+}
+
+.auth-link {
+  color: rgba(200, 200, 200, 0.9);
+  text-decoration: none;
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+  transition: all 0.3s;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+}
+
+.auth-link:hover {
+  color: white;
+}
+
+.auth-link.register {
+  background: linear-gradient(
+    45deg,
+    rgba(0, 100, 255, 0.8),
+    rgba(0, 150, 255, 0.9)
+  );
+  color: white;
+}
+
+.auth-link.register:hover {
+  box-shadow: 0 0 10px rgba(0, 150, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+.mobile-menu-toggle {
+  display: none;
+  cursor: pointer;
+  font-size: 1.5rem;
+  color: rgba(200, 200, 200, 0.9);
+}
+
+.mobile-menu {
+  display: none;
+  flex-direction: column;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: rgba(15, 15, 15, 0.95);
+  border-bottom: 1px solid rgba(50, 50, 50, 0.5);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  z-index: 99;
+  transform: translateY(-100%);
+  transition: transform 0.3s ease-in-out;
+}
+
+.mobile-menu.active {
+  transform: translateY(0);
+}
+
+.mobile-nav-link {
+  color: rgba(200, 200, 200, 0.9);
+  text-decoration: none;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid rgba(50, 50, 50, 0.5);
+  transition: all 0.3s;
+}
+
+.mobile-nav-link:hover, .mobile-nav-link.router-link-active {
+  background-color: rgba(30, 30, 30, 0.9);
+  color: rgba(0, 150, 255, 1);
+}
+
+.mobile-nav-link.register {
+  background: linear-gradient(
+    45deg,
+    rgba(0, 100, 255, 0.5),
+    rgba(0, 150, 255, 0.6)
+  );
+}
+
+/* Original Styles Modified */
 .imagegen-layout {
   display: flex;
   width: 100%;
   max-width: 1400px;
-  height: calc(100vh - 2rem);
+  height: calc(100vh - 80px); /* Adjusted for navbar */
   gap: 1.5rem;
+  padding: 1rem;
+  margin: 0 auto;
 }
 
 .control-panel {
@@ -353,9 +541,8 @@ export default defineComponent({
   background-color: rgba(15, 15, 15, 0.8);
   border: 1px solid rgba(50, 50, 50, 0.5);
   border-radius: 8px;
-  box-shadow:
-    0 0 15px rgba(0, 150, 255, 0.2),
-    0 0 30px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 15px rgba(0, 150, 255, 0.2),
+  0 0 30px rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(5px);
   padding: 1.5rem;
   display: flex;
@@ -385,9 +572,8 @@ export default defineComponent({
   background-color: rgba(15, 15, 15, 0.8);
   border: 1px solid rgba(50, 50, 50, 0.5);
   border-radius: 8px;
-  box-shadow:
-    0 0 15px rgba(0, 150, 255, 0.2),
-    0 0 30px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 15px rgba(0, 150, 255, 0.2),
+  0 0 30px rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(5px);
   padding: 1.5rem;
   display: flex;
@@ -420,9 +606,8 @@ export default defineComponent({
   font-size: 1.5rem;
   margin-bottom: 1rem;
   color: rgba(240, 240, 240, 0.9);
-  text-shadow:
-    0 0 5px rgba(255, 255, 255, 0.5),
-    0 0 10px rgba(0, 150, 255, 0.5);
+  text-shadow: 0 0 2px rgba(255, 255, 255, 0.5),
+  0 0 5px rgba(0, 150, 255, 0.5);
 }
 
 .prompt-container {
@@ -670,9 +855,8 @@ select {
 }
 
 .generate-button:hover:not(:disabled) {
-  box-shadow:
-    0 0 10px rgba(0, 150, 255, 0.5),
-    0 0 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 10px rgba(0, 150, 255, 0.5),
+  0 0 20px rgba(0, 0, 0, 0.3);
   transform: translateY(-2px);
 }
 
@@ -819,6 +1003,24 @@ select {
 
   .image-preview-container {
     height: 500px;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar-links, .navbar-user-manage {
+    display: none;
+  }
+
+  .mobile-menu-toggle {
+    display: block;
+  }
+
+  .mobile-menu {
+    display: flex;
+  }
+
+  .image-preview-container {
+    height: 400px;
   }
 }
 
