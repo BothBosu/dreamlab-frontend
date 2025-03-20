@@ -1,4 +1,3 @@
-// src/router/index.ts
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import LoginView from '@/views/LoginView.vue'
@@ -6,6 +5,7 @@ import RegisterView from '@/views/RegisterView.vue'
 import GalleryView from '@/views/GalleryView.vue'
 import ImageGenView from '@/views/ImageGenView.vue'
 import ErrorView from '@/views/ErrorView.vue'
+import LandingView from '@/views/LandingView.vue'
 
 // Placeholder for Dashboard
 const DashboardView = {
@@ -21,7 +21,9 @@ const DashboardView = {
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    redirect: '/login'
+    name: 'landing',
+    component: LandingView,
+    meta: { requiresAuth: false }
   },
   {
     path: '/login',
@@ -66,12 +68,14 @@ const routes: Array<RouteRecordRaw> = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  // Fix for import.meta.env error
+  history: createWebHistory((import.meta as any).env.BASE_URL),
   routes
 })
 
 // Navigation guard for authentication
-router.beforeEach(async (to, from, next) => {
+// Fix for 'from' parameter by using underscore to indicate unused parameter
+router.beforeEach(async (to, _from, next) => {
   const authStore = useAuthStore()
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
   const isAuthenticated = authStore.isAuthenticated

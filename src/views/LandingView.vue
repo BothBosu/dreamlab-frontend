@@ -1,0 +1,584 @@
+<template>
+  <div class="landing-container">
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="hero-content">
+        <div class="neon-header">
+          <h1>DREAM LAB</h1>
+          <div class="neon-line"></div>
+        </div>
+        <p class="tagline">Transform your imagination into stunning AI-generated art</p>
+
+        <!-- Sample Images Showcase -->
+        <div class="image-showcase">
+          <div class="sample-image" v-for="i in 3" :key="i">
+            <div class="image-placeholder">
+              <div class="placeholder-text">AI Sample {{i}}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+          <router-link to="/login" class="action-button login-btn">Login</router-link>
+          <router-link to="/register" class="action-button register-btn">Register</router-link>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+      <div class="section-header">
+        <h2>Features</h2>
+        <div class="neon-line"></div>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <div class="icon-placeholder">🎨</div>
+          </div>
+          <h3>Generate Unique AI Images</h3>
+          <p>Create stunning visuals from text prompts powered by state-of-the-art AI</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <div class="icon-placeholder">🖼️</div>
+          </div>
+          <h3>Community Gallery</h3>
+          <p>Browse a vast collection of AI creations from users around the world</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <div class="icon-placeholder">❤️</div>
+          </div>
+          <h3>Like Favorites</h3>
+          <p>Show appreciation for images that inspire you with likes and saves</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <div class="icon-placeholder">🔄</div>
+          </div>
+          <h3>Share Your Creations</h3>
+          <p>Publish your best generations to the community gallery</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section divider -->
+    <div class="section-divider"></div>
+
+    <!-- Gallery Preview Section -->
+    <section class="gallery-preview-section">
+      <div class="section-header">
+        <h2>Community Creations</h2>
+        <div class="neon-line"></div>
+      </div>
+
+      <div class="gallery-grid">
+        <div class="gallery-item" v-for="i in 6" :key="i">
+          <div class="gallery-image-placeholder">
+            <div class="placeholder-text">Gallery Sample {{i}}</div>
+          </div>
+          <div class="image-meta">
+            <span class="image-prompt">"Cyberpunk city at night"</span>
+            <span class="image-likes">❤️ 423</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="view-more-container">
+        <router-link to="/gallery" class="view-more-btn">Explore Full Gallery</router-link>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="landing-footer">
+      <div class="footer-content">
+        <div class="footer-logo">DREAM LAB</div>
+        <p class="footer-tagline">Where AI brings imagination to life</p>
+        <div class="footer-links">
+          <router-link to="/login">Login</router-link>
+          <router-link to="/register">Register</router-link>
+          <a href="#">About</a>
+          <a href="#">Terms</a>
+          <a href="#">Privacy</a>
+        </div>
+      </div>
+      <div class="copyright">© 2025 Dream Lab. All rights reserved.</div>
+    </footer>
+  </div>
+</template>
+
+<script lang="ts">
+import { defineComponent } from 'vue';
+
+export default defineComponent({
+  name: 'LandingView',
+  components: {},
+  setup() {
+    return {};
+  }
+});
+</script>
+
+<style scoped>
+.landing-container {
+  min-height: 100vh;
+  background-color: #0a0a0a;
+  background-image:
+    radial-gradient(circle, rgba(25, 25, 25, 0.8) 0%, rgba(5, 5, 5, 0.9) 100%),
+    linear-gradient(45deg, rgba(0, 0, 255, 0.1) 0%, rgba(0, 0, 0, 0.1) 100%);
+  color: #f0f0f0;
+  font-family: 'Rajdhani', 'Roboto', sans-serif;
+}
+
+/* Hero Section Styles */
+.hero-section {
+  min-height: 80vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-content {
+  text-align: center;
+  max-width: 1200px;
+  width: 100%;
+  z-index: 2;
+}
+
+.neon-header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.neon-header h1 {
+  font-size: 4.5rem;
+  letter-spacing: 10px;
+  margin-bottom: 0.5rem;
+  color: rgba(240, 240, 240, 0.9);
+  text-shadow:
+    0 0 5px rgba(255, 255, 255, 0.5),
+    0 0 10px rgba(0, 150, 255, 0.5),
+    0 0 20px rgba(0, 100, 255, 0.4);
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.neon-line {
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 0, 128, 0.2),
+    rgba(0, 255, 255, 0.7),
+    rgba(128, 0, 255, 0.2)
+  );
+  margin: 0 auto;
+  width: 60%;
+  animation: rgbPulse 3s ease-in-out infinite;
+}
+
+.tagline {
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
+  color: rgba(200, 200, 200, 0.9);
+  letter-spacing: 1px;
+}
+
+.image-showcase {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.sample-image {
+  width: 300px;
+  height: 200px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow:
+    0 0 15px rgba(0, 150, 255, 0.2),
+    0 0 30px rgba(0, 0, 0, 0.4);
+}
+
+.image-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    45deg,
+    rgba(30, 30, 60, 0.8),
+    rgba(60, 30, 90, 0.8)
+  );
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.placeholder-text {
+  font-size: 1.2rem;
+  color: rgba(200, 200, 255, 0.7);
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.action-button {
+  padding: 1rem 2.5rem;
+  font-size: 1rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: all 0.3s;
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-btn {
+  background: linear-gradient(
+    45deg,
+    rgba(0, 100, 255, 0.8),
+    rgba(0, 150, 255, 0.9)
+  );
+  color: white;
+  border: none;
+}
+
+.register-btn {
+  background: transparent;
+  color: rgba(0, 150, 255, 0.9);
+  border: 1px solid rgba(0, 150, 255, 0.7);
+}
+
+.action-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: all 0.5s;
+}
+
+.action-button:hover::before {
+  left: 100%;
+}
+
+.login-btn:hover {
+  box-shadow:
+    0 0 10px rgba(0, 150, 255, 0.5),
+    0 0 20px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+.register-btn:hover {
+  background-color: rgba(0, 150, 255, 0.1);
+  box-shadow: 0 0 10px rgba(0, 150, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Features Section Styles */
+.features-section {
+  padding: 3rem 2rem;
+  background-color: rgba(10, 10, 15, 0.9);
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.section-header h2 {
+  font-size: 2.2rem;
+  letter-spacing: 5px;
+  margin-bottom: 0.5rem;
+  color: rgba(240, 240, 240, 0.9);
+  text-shadow:
+    0 0 5px rgba(255, 255, 255, 0.3),
+    0 0 10px rgba(0, 150, 255, 0.3);
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.feature-card {
+  background-color: rgba(15, 15, 20, 0.7);
+  border: 1px solid rgba(50, 50, 70, 0.5);
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: all 0.3s;
+  box-shadow:
+    0 0 15px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(5px);
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow:
+    0 0 15px rgba(0, 150, 255, 0.2),
+    0 0 30px rgba(0, 0, 0, 0.4);
+  border-color: rgba(0, 150, 255, 0.3);
+}
+
+.feature-icon {
+  margin-bottom: 1.5rem;
+  font-size: 2.5rem;
+  width: 70px;
+  height: 70px;
+  background: rgba(20, 20, 40, 0.7);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto 1.5rem;
+  box-shadow: 0 0 10px rgba(0, 150, 255, 0.3);
+}
+
+.feature-card h3 {
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+  color: rgba(220, 220, 255, 0.9);
+}
+
+.feature-card p {
+  color: rgba(180, 180, 200, 0.8);
+  line-height: 1.6;
+}
+
+/* Section divider */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0),
+    rgba(0, 150, 255, 0.3),
+    rgba(0, 0, 0, 0)
+  );
+  margin: 1rem auto;
+  width: 80%;
+}
+
+/* Gallery Preview Section */
+.gallery-preview-section {
+  padding: 3rem 2rem;
+  background-color: rgba(10, 10, 15, 0.9);
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+  max-width: 1200px;
+  margin: 0 auto 2rem;
+}
+
+.gallery-item {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow:
+    0 0 15px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s;
+  background-color: rgba(20, 20, 30, 0.7);
+  border: 1px solid rgba(40, 40, 60, 0.5);
+}
+
+.gallery-item:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow:
+    0 0 15px rgba(0, 150, 255, 0.2),
+    0 0 30px rgba(0, 0, 0, 0.4);
+  border-color: rgba(0, 150, 255, 0.3);
+}
+
+.gallery-image-placeholder {
+  width: 100%;
+  height: 180px;
+  background: linear-gradient(
+    45deg,
+    rgba(40, 40, 80, 0.8),
+    rgba(80, 40, 100, 0.8)
+  );
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.image-meta {
+  padding: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.image-prompt {
+  color: rgba(200, 200, 220, 0.9);
+  font-style: italic;
+}
+
+.image-likes {
+  color: rgba(255, 100, 150, 0.9);
+}
+
+.view-more-container {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.view-more-btn {
+  display: inline-block;
+  padding: 0.8rem 2rem;
+  background: transparent;
+  color: rgba(0, 150, 255, 0.9);
+  border: 1px solid rgba(0, 150, 255, 0.7);
+  border-radius: 4px;
+  font-size: 1rem;
+  letter-spacing: 1.5px;
+  text-decoration: none;
+  transition: all 0.3s;
+}
+
+.view-more-btn:hover {
+  background-color: rgba(0, 150, 255, 0.1);
+  box-shadow: 0 0 10px rgba(0, 150, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Footer */
+.landing-footer {
+  background-color: rgba(5, 5, 10, 0.95);
+  padding: 2rem 2rem 1rem;
+  text-align: center;
+  border-top: 1px solid rgba(40, 40, 60, 0.5);
+}
+
+.footer-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.footer-logo {
+  font-size: 1.8rem;
+  letter-spacing: 5px;
+  margin-bottom: 0.5rem;
+  color: rgba(240, 240, 240, 0.8);
+  text-shadow:
+    0 0 5px rgba(0, 150, 255, 0.3);
+}
+
+.footer-tagline {
+  font-size: 1rem;
+  color: rgba(180, 180, 200, 0.7);
+  margin-bottom: 1.5rem;
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+.footer-links a {
+  color: rgba(150, 150, 200, 0.8);
+  text-decoration: none;
+  transition: all 0.3s;
+}
+
+.footer-links a:hover {
+  color: rgba(0, 180, 255, 1);
+  text-shadow: 0 0 5px rgba(0, 150, 255, 0.5);
+}
+
+.copyright {
+  font-size: 0.8rem;
+  color: rgba(150, 150, 170, 0.6);
+}
+
+/* Animations */
+@keyframes rgbBorder {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes rgbPulse {
+  0% {
+    opacity: 0.7;
+    box-shadow: 0 0 5px rgba(0, 150, 255, 0.3);
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 15px rgba(0, 150, 255, 0.5);
+  }
+  100% {
+    opacity: 0.7;
+    box-shadow: 0 0 5px rgba(0, 150, 255, 0.3);
+  }
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .neon-header h1 {
+    font-size: 3rem;
+    letter-spacing: 5px;
+  }
+
+  .tagline {
+    font-size: 1.2rem;
+  }
+
+  .image-showcase {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .sample-image {
+    width: 100%;
+    max-width: 300px;
+  }
+
+  .process-steps {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .process-step {
+    max-width: 300px;
+  }
+}
+</style>
