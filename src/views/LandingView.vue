@@ -121,7 +121,7 @@
       </div>
 
       <div class="gallery-grid">
-        <div class="gallery-item" v-for="i in 6" :key="i">
+        <div class="gallery-item" v-for="i in 4" :key="i">
           <div class="gallery-image-placeholder">
             <div class="placeholder-text">Gallery Sample {{i}}</div>
           </div>
