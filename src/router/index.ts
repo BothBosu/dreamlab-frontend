@@ -40,7 +40,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/gallery',
     name: 'gallery',
     component: GalleryView,
-    meta: { requiresAuth: false }
+    meta: { requiresAuth: true }
   }
 ];
 
