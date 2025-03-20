@@ -11,7 +11,7 @@
     <!-- Gallery -->
     <div class="gallery">
       <div v-for="image in images" :key="image.id" class="gallery-item">
-        <img :src="image.url" :alt="image.title" />
+        <img :src="image.url + '?t=' + new Date().getTime()" :alt="image.title" />
         <p>{{ image.title }}</p>
       </div>
     </div>
@@ -34,9 +34,11 @@ export default defineComponent({
     async fetchImages() {
       try {
         const response = await axios.get("http://localhost:8080/api/images");
+        console.log("Fetched images:", response.data);
+
         this.images = response.data.map((img: any) => ({
           id: img.id,
-          url: img.url, // Ensure this URL is correct in your backend
+          url: img.url, // Ensure this URL is an S3 link
           title: `Image ${img.id}`,
         }));
       } catch (error) {
@@ -60,10 +62,12 @@ export default defineComponent({
           headers: { "Content-Type": "multipart/form-data" },
         });
 
-        // Add the new image to the gallery
+        console.log("Upload response:", response.data);
+
+        // Add the new image to the gallery (from S3)
         this.images.push({
           id: response.data.id,
-          url: response.data.url, // Ensure this URL format is returned from your backend
+          url: response.data.url + "?t=" + new Date().getTime(), // Prevent caching
           title: `Image ${response.data.id}`,
         });
 
