@@ -6,14 +6,7 @@ import GalleryView from '@/views/GalleryView.vue'
 import ImageGenView from '@/views/ImageGenView.vue'
 import ErrorView from '@/views/ErrorView.vue'
 import LandingView from '@/views/LandingView.vue'
-
-// Placeholder for Dashboard
-const DashboardView = {
-  template: '<div class="dashboard-container"><h1>Dashboard (Protected Page)</h1><p>Welcome to the futuristic dashboard.</p></div>',
-  setup() {
-    return {}
-  }
-}
+import DashboardView from '@/views/DashboardView.vue'
 
 /**
  * TODO: Don't forget to change the requiresAuth meta to true when actually deploying the app
@@ -47,7 +40,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/gallery',
     name: 'gallery',
     component: GalleryView,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: false }
   },
   {
     path: '/imagegen',
