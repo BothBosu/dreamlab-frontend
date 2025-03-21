@@ -273,9 +273,18 @@ export default defineComponent({
         })
 
         alert('Image saved successfully!')
-      } catch (error) {
-        console.error('Error saving image:', error)
-        alert('Failed to save image.')
+      } catch (error: any) {
+        if (error.response && error.response.status === 400) {
+          const message = error.response.data.message || error.response.data || 'Unknown error';
+
+          if (message.includes("User not found")) {
+            alert("You must be logged in to save images.");
+          } else {
+            alert("Error: " + message);
+          }
+        } else {
+          alert("Something went wrong. Please try again later.");
+        }
       }
     }
 
