@@ -102,12 +102,13 @@ export default defineComponent({
   methods: {
     async fetchImages() {
       try {
-        const response = await axios.get("http://localhost:8080/api/images");
+        const response = await axios.get("http://localhost:8080/api/images/all");
         console.log("Fetched images:", response.data);
+
         this.images = response.data.map((img: any) => ({
           id: img.id,
-          url: img.url, // Ensure this URL is an S3 link
-          title: `Image ${img.id}`,
+          url: img.url,
+          title: img.inputPrompt || `Image ${img.id}`,
         }));
       } catch (error) {
         console.error("Error fetching images:", error);
