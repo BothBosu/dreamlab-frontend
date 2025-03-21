@@ -503,7 +503,7 @@ export default defineComponent({
   display: flex;
   width: 100%;
   max-width: 1400px;
-  height: calc(100vh - 80px); /* Adjusted for navbar */
+  min-height: calc(100vh - 80px); /* Adjusted for navbar */
   gap: 1.5rem;
   padding: 1rem;
   margin: 0 auto;
@@ -591,6 +591,7 @@ export default defineComponent({
 .prompt-input {
   width: 100%;
   height: 100px;
+  max-height: 100px;
   padding: 0.9rem 1rem;
   background-color: rgba(30, 30, 30, 0.7);
   border: 1px solid rgba(60, 60, 60, 0.5);
@@ -599,6 +600,7 @@ export default defineComponent({
   font-family: 'Rajdhani', 'Roboto', sans-serif;
   font-size: 1rem;
   resize: vertical;
+  overflow-y: auto;
   transition: all 0.3s;
 }
 
