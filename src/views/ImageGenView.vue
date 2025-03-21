@@ -49,44 +49,21 @@
           </div>
         </div>
 
-        <div class="settings-tabs">
-          <div
-            v-for="tab in tabs"
-            :key="tab.id"
-            @click="activeTab = tab.id"
-            :class="['tab', { active: activeTab === tab.id }]"
-          >
-            {{ tab.name }}
+        <div class="panel-section">
+          <h2>Negative Prompt</h2>
+          <div class="prompt-container">
+            <textarea
+              v-model="negativePrompt"
+              placeholder="Enter things to avoid in the image..."
+              :maxlength="negativePromptMaxLength"
+              class="prompt-input"
+              @input="updateNegativeCharCount"
+            ></textarea>
+            <div class="char-counter">{{ negativeCharCount }}/{{ negativePromptMaxLength }}</div>
           </div>
         </div>
 
-        <!-- Generation Settings -->
-        <div v-if="activeTab === 'generation'" class="panel-section">
-          <div class="setting-group">
-            <label for="samplingMethod">Sampling method</label>
-            <div class="select-container">
-              <select id="samplingMethod" v-model="settings.samplingMethod">
-                <option value="dpm++">DPM++ 2M Karras</option>
-                <option value="euler">Euler a</option>
-                <option value="ddim">DDIM</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="setting-group">
-            <label for="samplingSteps">Sampling steps: {{ settings.samplingSteps }}</label>
-            <div class="slider-container">
-              <input
-                type="range"
-                id="samplingSteps"
-                v-model.number="settings.samplingSteps"
-                min="1"
-                max="50"
-                class="slider"
-              />
-            </div>
-          </div>
-
+        <div class="panel-section">
           <div class="setting-group">
             <label for="width">Width: {{ settings.width }}px</label>
             <div class="slider-container">
@@ -134,15 +111,14 @@
           </div>
 
           <div class="setting-group">
-            <label for="cfgScale">CFG Scale: {{ settings.cfgScale }}</label>
+            <label for="steps">Steps: {{ settings.steps }}</label>
             <div class="slider-container">
               <input
                 type="range"
-                id="cfgScale"
-                v-model.number="settings.cfgScale"
+                id="steps"
+                v-model.number="settings.steps"
                 min="1"
-                max="20"
-                step="0.5"
+                max="100"
                 class="slider"
               />
             </div>
@@ -155,32 +131,14 @@
                 type="number"
                 id="seed"
                 v-model.number="settings.seed"
+                min="1"
+                max="2147483647"
                 class="seed-input"
               />
               <button @click="randomizeSeed" class="seed-random">
                 <i class="icon-random">🔄</i>
               </button>
             </div>
-          </div>
-        </div>
-
-        <!-- Extra Settings Tab -->
-        <div v-if="activeTab === 'advanced'" class="panel-section">
-          <div class="setting-group">
-            <label for="batchCount">Batch count</label>
-            <input type="number" id="batchCount" v-model.number="settings.batchCount" min="1"
-                   max="4" class="numeric-input" />
-          </div>
-
-          <div class="setting-group">
-            <label for="batchSize">Batch size</label>
-            <input type="number" id="batchSize" v-model.number="settings.batchSize" min="1" max="4"
-                   class="numeric-input" />
-          </div>
-
-          <div class="checkbox-group">
-            <input type="checkbox" id="refiner" v-model="settings.refiner" />
-            <label for="refiner">Refiner</label>
           </div>
         </div>
 
@@ -242,35 +200,33 @@ export default defineComponent({
     const prompt = ref('')
     const promptMaxLength = 200
     const charCount = ref(0)
+
+    const negativePrompt = ref('')
+    const negativePromptMaxLength = 200
+    const negativeCharCount = ref(0)
+
     const isGenerating = ref(false)
     const generatedImage = ref('')
-    const activeTab = ref('generation')
     const mobileMenuOpen = ref(false)
     const route = useRoute()
 
-    const tabs = [
-      { id: 'generation', name: 'Generation' },
-      { id: 'advanced', name: 'Advanced' }
-    ]
-
     const settings = reactive({
-      samplingMethod: 'dpm++',
-      samplingSteps: 20,
       width: 1024,
       height: 1024,
-      cfgScale: 7,
-      seed: -1,
-      batchCount: 1,
-      batchSize: 1,
-      refiner: false
+      steps: 20,
+      seed: 1
     })
 
     const updateCharCount = () => {
       charCount.value = prompt.value.length
     }
 
+    const updateNegativeCharCount = () => {
+      negativeCharCount.value = negativePrompt.value.length
+    }
+
     const randomizeSeed = () => {
-      settings.seed = Math.floor(Math.random() * 2147483647)
+      settings.seed = Math.floor(Math.random() * 2147483647) + 1
     }
 
     const toggleMobileMenu = () => {
@@ -288,7 +244,13 @@ export default defineComponent({
       try {
         const response = await axios.post('/api/images/generate', {
           prompt: prompt.value,
-          settings: settings
+          negative_prompt: negativePrompt.value,
+          settings: {
+            width: settings.width,
+            height: settings.height,
+            steps: settings.steps,
+            seed: settings.seed
+          }
         })
 
         // Assuming the API returns the image URL in the response
@@ -351,11 +313,13 @@ export default defineComponent({
       promptMaxLength,
       charCount,
       updateCharCount,
+      negativePrompt,
+      negativePromptMaxLength,
+      negativeCharCount,
+      updateNegativeCharCount,
       settings,
       isGenerating,
       generatedImage,
-      activeTab,
-      tabs,
       mobileMenuOpen,
       toggleMobileMenu,
       randomizeSeed,
