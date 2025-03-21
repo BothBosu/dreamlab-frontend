@@ -50,12 +50,12 @@
         <button class="upload-btn" @click="uploadImage" :disabled="!selectedFile">Upload</button>
       </div>
       <!-- Gallery -->
-      <div class="gallery">
-        <div v-for="image in images" :key="image.id" class="gallery-item">
-          <img :src="image.url + '?t=' + new Date().getTime()" :alt="image.title" />
-          <p>{{ image.title }}</p>
-        </div>
+      <div class="gallery-item" v-for="image in images" :key="image.id">
+        <img :src="image.url" :alt="image.title" />
+        <p>{{ image.title }}</p>
+        <button @click="toggleLike(image)">❤️ {{ image.likes }}</button>
       </div>
+
     </div>
   </div>
 </template>
@@ -95,24 +95,22 @@ export default defineComponent({
   },
   data() {
     return {
-      images: [] as Array<{ id: number; url: string; title: string }>,
+      images: [] as Array<{ id: number; url: string; title: string; likes: number }>,
       selectedFile: null as File | null
     };
   },
   methods: {
     async fetchImages() {
-      try {
-        const response = await axios.get("http://localhost:8080/api/images/all");
-        console.log("Fetched images:", response.data);
-
-        this.images = response.data.map((img: any) => ({
+      const response = await axios.get("http://localhost:8080/api/images/all");
+      this.images = await Promise.all(response.data.map(async (img: any) => {
+        const likeCountRes = await axios.get(`http://localhost:8080/api/likes/${img.id}/count`);
+        return {
           id: img.id,
           url: img.url,
           title: img.inputPrompt || `Image ${img.id}`,
-        }));
-      } catch (error) {
-        console.error("Error fetching images:", error);
-      }
+          likes: likeCountRes.data
+        };
+      }));
     },
     handleFileChange(event: Event) {
       const target = event.target as HTMLInputElement;
@@ -134,10 +132,28 @@ export default defineComponent({
           id: response.data.id,
           url: response.data.url + "?t=" + new Date().getTime(), // Prevent caching
           title: `Image ${response.data.id}`,
+          likes: 0,
         });
         this.selectedFile = null;
       } catch (error) {
-        console.error("Error uploading image:", error);
+        if (error.response?.status === 403) {
+          alert('Please log in to upload images.');
+        } else {
+          console.error('Upload failed:', error);
+        }
+      }
+    },
+    async toggleLike(image: any) {
+      try {
+        await axios.post(`http://localhost:8080/api/likes/${image.id}/toggle`);
+        const res = await axios.get(`http://localhost:8080/api/likes/${image.id}/count`);
+        image.likes = res.data;
+      } catch (error) {
+        if (error.response?.status === 403) {
+          alert('Please log in to like images.');
+        } else {
+          console.error('Failed to like image:', error);
+        }
       }
     },
   },
