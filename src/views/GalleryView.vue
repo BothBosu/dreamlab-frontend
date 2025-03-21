@@ -50,12 +50,18 @@
         <button class="upload-btn" @click="uploadImage" :disabled="!selectedFile">Upload</button>
       </div>
       <!-- Gallery -->
-      <div class="gallery-item" v-for="image in images" :key="image.id">
-        <img :src="image.url" :alt="image.title" />
-        <p>{{ image.title }}</p>
-        <button @click="toggleLike(image)">❤️ {{ image.likes }}</button>
+      <div class="gallery">
+        <div class="gallery-item" v-for="image in images" :key="image.id">
+          <div class="image-container">
+            <img :src="image.url" :alt="image.title" />
+            <button @click="toggleLike(image)" class="like-button">
+              <span class="heart-icon">❤️</span>
+              <span class="like-count">{{ image.likes }}</span>
+            </button>
+          </div>
+          <p>{{ image.title }}</p>
+        </div>
       </div>
-
     </div>
   </div>
 </template>
@@ -250,17 +256,59 @@ input[type="file"] {
   border-color: rgba(0, 150, 255, 0.3);
 }
 
+.image-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 4px;
+}
+
 .gallery-item img {
   max-width: 200px;
   height: auto;
   display: block;
   margin-bottom: 0.5rem;
   border-radius: 4px;
+  transition: transform 0.3s ease;
+}
+
+.gallery-item:hover img {
+  transform: scale(1.03);
+}
+
+.like-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.6);
+  border: none;
+  border-radius: 20px;
+  padding: 5px 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: all 0.3s;
+  backdrop-filter: blur(2px);
+}
+
+.like-button:hover {
+  background: rgba(50, 50, 50, 0.8);
+  transform: scale(1.1);
+}
+
+.heart-icon {
+  font-size: 1rem;
+}
+
+.like-count {
+  color: white;
+  font-size: 0.9rem;
 }
 
 .gallery-item p {
   color: rgba(200, 200, 200, 0.9);
   font-size: 0.9rem;
+  margin-top: 0.5rem;
 }
 
 h1 {
