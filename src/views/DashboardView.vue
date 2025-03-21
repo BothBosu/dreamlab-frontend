@@ -49,18 +49,28 @@
         <div class="neon-line"></div>
       </div>
 
-      <div class="dashboard-placeholder">
-        <p>Welcome to your Dream Lab dashboard.</p>
-        <p>This area will contain your generated images.</p>
+      <div class="image-gallery">
+        <div v-if="images.length === 0" class="dashboard-placeholder">
+          <p>You haven't generated any images yet.</p>
+        </div>
+
+        <div v-else class="gallery-grid">
+          <div v-for="image in images" :key="image.id" class="gallery-item">
+            <img :src="image.url" :alt="image.inputPrompt" />
+            <p class="image-caption">{{ image.inputPrompt }}</p>
+          </div>
+        </div>
       </div>
+
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed } from 'vue';
+import { defineComponent, ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
+import axios from 'axios';
 
 export default defineComponent({
   name: 'DashboardView',
@@ -72,6 +82,19 @@ export default defineComponent({
     const isAuthenticated = computed(() => authStore.isAuthenticated);
     const userDisplayName = computed(() => authStore.user?.username || 'User');
 
+    const images = ref<Array<{ id: number; url: string; inputPrompt: string }>>([]);
+
+    const fetchUserImages = async () => {
+      try {
+        const response = await axios.get('http://localhost:8080/api/images/user', {
+          withCredentials: true, // if you're using session-based login
+        });
+        images.value = response.data;
+      } catch (error) {
+        console.error('Failed to fetch user images:', error);
+      }
+    };
+
     const toggleMobileMenu = () => {
       mobileMenuOpen.value = !mobileMenuOpen.value;
     };
@@ -81,18 +104,61 @@ export default defineComponent({
       router.push('/login');
     };
 
+    onMounted(() => {
+      fetchUserImages();
+    });
+
     return {
       isAuthenticated,
       userDisplayName,
       mobileMenuOpen,
       toggleMobileMenu,
-      logout
+      logout,
+      images
     };
   }
 });
 </script>
 
 <style scoped>
+.image-gallery {
+  margin-top: 2rem;
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1.5rem;
+  padding: 1rem;
+}
+
+.gallery-item {
+  background-color: rgba(30, 30, 30, 0.8);
+  border: 1px solid rgba(70, 70, 70, 0.5);
+  border-radius: 8px;
+  padding: 0.5rem;
+  box-shadow: 0 0 10px rgba(0, 150, 255, 0.1);
+  transition: transform 0.3s;
+}
+
+.gallery-item:hover {
+  transform: scale(1.05);
+}
+
+.gallery-item img {
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+.image-caption {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: rgba(200, 200, 200, 0.85);
+  word-wrap: break-word;
+  text-align: center;
+}
+
 .dashboard-container {
   min-height: 100vh;
   background-color: #0a0a0a;
