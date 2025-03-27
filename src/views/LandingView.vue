@@ -4,9 +4,7 @@
     <div class="navbar">
       <div class="navbar-logo">
         <router-link to="/" class="logo-link">
-          <router-link to="/" class="logo-link">
-            <span class="logo-text">DREAM LAB</span>
-          </router-link>
+          <span class="logo-text">DREAM LAB</span>
         </router-link>
       </div>
       <div class="navbar-links">
@@ -43,6 +41,7 @@
         <router-link to="/register" class="mobile-nav-link register" @click="toggleMobileMenu">Register</router-link>
       </template>
     </div>
+
     <!-- Hero Section -->
     <section class="hero-section">
       <div class="hero-content">
@@ -54,11 +53,23 @@
 
         <!-- Sample Images Showcase -->
         <div class="image-showcase">
-          <div class="sample-image" v-for="i in 3" :key="i">
-            <div class="image-placeholder">
-              <div class="placeholder-text">AI Sample {{i}}</div>
+          <template v-if="loading">
+            <div class="sample-image" v-for="i in 3" :key="i">
+              <div class="image-placeholder">
+                <div class="placeholder-text">Loading...</div>
+              </div>
             </div>
-          </div>
+          </template>
+          <template v-else>
+            <div class="sample-image" v-for="(image, i) in sampleImages" :key="i">
+              <img
+                :src="image.url"
+                alt="Sample image"
+                class="sample-img"
+                @error="handleImageError($event, i, 'sample')"
+              />
+            </div>
+          </template>
         </div>
 
         <!-- Generate Button -->
@@ -121,15 +132,31 @@
       </div>
 
       <div class="gallery-grid">
-        <div class="gallery-item" v-for="i in 4" :key="i">
-          <div class="gallery-image-placeholder">
-            <div class="placeholder-text">Gallery Sample {{i}}</div>
+        <template v-if="loading">
+          <div class="gallery-item" v-for="i in 4" :key="i">
+            <div class="gallery-image-placeholder">
+              <div class="placeholder-text">Loading...</div>
+            </div>
+            <div class="image-meta">
+              <span class="image-prompt">"Loading..."</span>
+              <span class="image-likes">❤️ 0</span>
+            </div>
           </div>
-          <div class="image-meta">
-            <span class="image-prompt">"Cyberpunk city at night"</span>
-            <span class="image-likes">❤️ 423</span>
+        </template>
+        <template v-else>
+          <div class="gallery-item" v-for="(image, i) in galleryImages" :key="i">
+            <img
+              :src="image.url"
+              :alt="image.title || 'Gallery Image'"
+              class="gallery-img"
+              @error="handleImageError($event, i, 'gallery')"
+            >
+            <div class="image-meta">
+              <span class="image-prompt">"{{ image.title || 'Untitled' }}"</span>
+              <span class="image-likes">❤️ {{ image.likes || 0 }}</span>
+            </div>
           </div>
-        </div>
+        </template>
       </div>
 
       <div class="view-more-container">
@@ -156,17 +183,26 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed } from 'vue';
+import { defineComponent, ref, computed, onMounted } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
+import axios from 'axios';
 
 export default defineComponent({
   name: 'LandingView',
-  components: {},
   setup() {
     const authStore = useAuthStore();
     const router = useRouter();
     const mobileMenuOpen = ref(false);
+    const loading = ref(true);
+
+    // Data for images
+    const sampleImages = ref<any[]>([]);
+    const galleryImages = ref<any[]>([]);
+
+    // For tracking images that failed to load
+    const failedSampleImages = ref<number[]>([]);
+    const failedGalleryImages = ref<number[]>([]);
 
     const isAuthenticated = computed(() => authStore.isAuthenticated);
     const username = computed(() => authStore.user?.username || 'User');
@@ -180,12 +216,123 @@ export default defineComponent({
       router.push('/login');
     };
 
+    // Fetch images from your existing API
+    const fetchImages = async () => {
+      try {
+        loading.value = true;
+
+        // Fetch all images from your existing endpoint
+        const response = await axios.get("http://localhost:8080/api/images/all");
+
+        // Process images with like counts (similar to your Gallery component)
+        const processedImages = await Promise.all(response.data.map(async (img: any) => {
+          try {
+            const likeCountRes = await axios.get(`http://localhost:8080/api/likes/${img.id}/count`);
+            return {
+              id: img.id,
+              url: img.url,
+              title: img.inputPrompt || `Image ${img.id}`,
+              likes: likeCountRes.data
+            };
+          } catch (error) {
+            console.error(`Error fetching likes for image ${img.id}:`, error);
+            return {
+              id: img.id,
+              url: img.url,
+              title: img.inputPrompt || `Image ${img.id}`,
+              likes: 0
+            };
+          }
+        }));
+
+        // Use different subsets for sample and gallery sections
+        if (processedImages.length > 0) {
+          // For sample images in hero section, use up to 3 images
+          sampleImages.value = processedImages.slice(0, 3);
+
+          // For gallery preview, use the next 4 different images
+          galleryImages.value = processedImages.slice(3, 7);
+
+          // If we don't have enough images, reuse some
+          if (galleryImages.value.length < 4) {
+            const remaining = 4 - galleryImages.value.length;
+            galleryImages.value = [
+              ...galleryImages.value,
+              ...processedImages.slice(0, remaining)
+            ];
+          }
+        } else {
+          // If there are no images, create some placeholders
+          sampleImages.value = Array(3).fill(null).map((_, i) => ({
+            id: i,
+            url: '',
+            title: 'Sample Image',
+            likes: 0
+          }));
+
+          galleryImages.value = Array(4).fill(null).map((_, i) => ({
+            id: i,
+            url: '',
+            title: 'Gallery Image',
+            likes: 0
+          }));
+        }
+      } catch (error) {
+        console.error('Error fetching images:', error);
+        // Create some placeholders in case of error
+        sampleImages.value = Array(3).fill(null).map((_, i) => ({
+          id: i,
+          url: '',
+          title: 'Sample Image',
+          likes: 0
+        }));
+
+        galleryImages.value = Array(4).fill(null).map((_, i) => ({
+          id: i,
+          url: '',
+          title: 'Gallery Image',
+          likes: 0
+        }));
+      } finally {
+        loading.value = false;
+      }
+    };
+
+    // Handle image loading errors
+    const handleImageError = (event: Event, index: number, type: 'sample' | 'gallery') => {
+      const img = event.target as HTMLImageElement;
+      img.style.display = 'none';
+
+      // Create a placeholder div
+      const placeholder = document.createElement('div');
+      placeholder.className = 'image-placeholder';
+      placeholder.innerHTML = '<div class="placeholder-text">Image unavailable</div>';
+
+      // Replace the image with the placeholder
+      img.parentNode?.appendChild(placeholder);
+
+      // Track failed images
+      if (type === 'sample') {
+        failedSampleImages.value.push(index);
+      } else {
+        failedGalleryImages.value.push(index);
+      }
+    };
+
+    onMounted(() => {
+      fetchImages();
+    });
+
     return {
       mobileMenuOpen,
       toggleMobileMenu,
       isAuthenticated,
       username,
-      logout
+      logout,
+      loading,
+      sampleImages,
+      galleryImages,
+      handleImageError
     };
   }
 });
@@ -275,6 +422,18 @@ export default defineComponent({
   box-shadow:
     0 0 15px rgba(0, 150, 255, 0.2),
     0 0 30px rgba(0, 0, 0, 0.4);
+}
+
+.sample-img, .gallery-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  transition: transform 0.3s ease;
+}
+
+.sample-img:hover, .gallery-img:hover {
+  transform: scale(1.05);
 }
 
 /* Navbar Styles */
@@ -717,6 +876,12 @@ export default defineComponent({
   align-items: center;
 }
 
+.gallery-img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
 .image-meta {
   padding: 0.75rem;
   display: flex;
@@ -728,6 +893,10 @@ export default defineComponent({
 .image-prompt {
   color: rgba(200, 200, 220, 0.9);
   font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 70%;
 }
 
 .image-likes {
@@ -857,15 +1026,11 @@ export default defineComponent({
   .sample-image {
     width: 100%;
     max-width: 300px;
+    margin-bottom: 1rem;
   }
 
-  .process-steps {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .process-step {
-    max-width: 300px;
+  .gallery-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   }
 }
 </style>
