@@ -3,12 +3,12 @@
     <!-- Navbar -->
     <div class="navbar">
       <div class="navbar-logo">
-        <span class="logo-text">IM-GEN-SSC</span>
+        <span class="logo-text">DREAMLAB</span>
       </div>
       <div class="navbar-links">
-        <router-link to="/dashboard" class="nav-link">Dashboard</router-link>
         <router-link to="/gallery" class="nav-link">Gallery</router-link>
-        <router-link to="/imagegen" class="nav-link active">Generate</router-link>
+        <router-link to="/imagegen" class="nav-link">Generate</router-link>
+        <router-link to="/dashboard" class="nav-link">Dashboard</router-link>
       </div>
       <div class="navbar-user-manage">
         <!-- TODO: User Management -->
