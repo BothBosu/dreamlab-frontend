@@ -42,6 +42,15 @@
       </template>
     </div>
 
+    <!-- Error Modal -->
+    <error-modal
+      :show="showErrorModal"
+      :title="errorTitle"
+      :message="errorMessage"
+      :button-text="errorButtonText"
+      @close="showErrorModal = false"
+    />
+
     <div class="gallery-content">
       <h1>Image Gallery</h1>
       <!-- Upload Form -->
@@ -54,7 +63,11 @@
         <div class="gallery-item" v-for="image in images" :key="image.id">
           <div class="image-container">
             <img :src="image.url" :alt="image.title" />
-            <button @click="toggleLike(image)" class="like-button">
+            <button
+              @click="handleLikeClick(image)"
+              class="like-button"
+              :class="{ 'disabled': !isAuthenticated }"
+            >
               <span class="heart-icon">❤️</span>
               <span class="like-count">{{ image.likes }}</span>
             </button>
@@ -71,9 +84,13 @@ import { defineComponent, ref, computed } from "vue";
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import axios from "axios";
+import ErrorModal from '@/components/ErrorModal.vue';
 
 export default defineComponent({
   name: "ImageGalleryView",
+  components: {
+    ErrorModal
+  },
   setup() {
     const mobileMenuOpen = ref(false);
     const router = useRouter();
@@ -102,7 +119,11 @@ export default defineComponent({
   data() {
     return {
       images: [] as Array<{ id: number; url: string; title: string; likes: number }>,
-      selectedFile: null as File | null
+      selectedFile: null as File | null,
+      showErrorModal: false,
+      errorTitle: 'Authentication Required',
+      errorMessage: 'Please log in to like images.',
+      errorButtonText: 'OK'
     };
   },
   methods: {
@@ -126,6 +147,14 @@ export default defineComponent({
     },
     async uploadImage() {
       if (!this.selectedFile) return;
+
+      if (!this.isAuthenticated) {
+        this.errorTitle = 'Authentication Required';
+        this.errorMessage = 'Please log in to upload images.';
+        this.showErrorModal = true;
+        return;
+      }
+
       const formData = new FormData();
       formData.append("file", this.selectedFile);
       try {
@@ -142,29 +171,33 @@ export default defineComponent({
         });
         this.selectedFile = null;
       } catch (error) {
-        if (error.response?.status === 403) {
-          alert('Please log in to upload images.');
-        } else {
-          console.error('Upload failed:', error);
-        }
+        this.errorTitle = 'Upload Failed';
+        this.errorMessage = error.response?.status === 403
+          ? 'Please log in to upload images.'
+          : 'An error occurred while uploading the image.';
+        this.showErrorModal = true;
       }
     },
-    async toggleLike(image: any) {
-      // Check authentication status first
+    handleLikeClick(image: any) {
       if (!this.isAuthenticated) {
-        alert('Please log in to like images.');
+        this.errorTitle = 'Authentication Required';
+        this.errorMessage = 'Please log in to like images.';
+        this.errorButtonText = 'OK';
+        this.showErrorModal = true;
         return;
       }
+
+      this.toggleLike(image);
+    },
+    async toggleLike(image: any) {
       try {
         await axios.post(`http://localhost:8080/api/likes/${image.id}/toggle`);
         const res = await axios.get(`http://localhost:8080/api/likes/${image.id}/count`);
         image.likes = res.data;
       } catch (error) {
-        if (error.response?.status === 403) {
-          alert('Please log in to like images.');
-        } else {
-          console.error('Failed to like image:', error);
-        }
+        this.errorTitle = 'Operation Failed';
+        this.errorMessage = 'Failed to like image. Please try again.';
+        this.showErrorModal = true;
       }
     },
   },
@@ -296,9 +329,14 @@ input[type="file"] {
   backdrop-filter: blur(2px);
 }
 
-.like-button:hover {
+.like-button:hover:not(.disabled) {
   background: rgba(50, 50, 50, 0.8);
   transform: scale(1.1);
+}
+
+.like-button.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .heart-icon {
