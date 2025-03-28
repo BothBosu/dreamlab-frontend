@@ -499,12 +499,12 @@ export default defineComponent({
   );
 }
 
-/* Original Styles Modified */
+/* Main Layout */
 .imagegen-layout {
   display: flex;
   width: 100%;
   max-width: 1400px;
-  min-height: calc(100vh - 80px); /* Adjusted for navbar */
+  min-height: calc(100vh - 80px);
   gap: 1.5rem;
   padding: 1rem;
   margin: 0 auto;
@@ -522,12 +522,13 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   position: relative;
+
+  /* Fixed size */
   height: 700px;
   min-height: 700px;
-  max-height: 700px;
-  justify-content: flex-start;
-  /* Allow scrolling if content is too tall */
-  overflow-y: auto;
+
+  /* Remove scrollbar */
+  overflow-y: hidden;
 }
 
 .control-panel::before {
@@ -546,10 +547,6 @@ export default defineComponent({
   animation: rgbBorder 5s linear infinite;
 }
 
-.control-panel > :last-child {
-  margin-bottom: 0; /* Ensure the last element has no margin */
-}
-
 .preview-panel {
   flex: 1;
   background-color: rgba(15, 15, 15, 0.8);
@@ -563,10 +560,8 @@ export default defineComponent({
   flex-direction: column;
   position: relative;
   overflow: hidden;
-  /* Fixed width with reasonable constraints */
   max-width: 100%;
-  /* Set fixed height to prevent panel size changes */
-  height: 700px; /* Adjust based on your layout */
+  height: 700px;
 }
 
 .preview-panel::before {
@@ -586,7 +581,7 @@ export default defineComponent({
 }
 
 .panel-section {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .panel-section h2 {
@@ -604,16 +599,16 @@ export default defineComponent({
 
 .prompt-input {
   width: 100%;
-  height: 100px;
-  max-height: 100px;
-  padding: 0.9rem 1rem;
+  height: 80px;
+  max-height: 80px;
+  padding: 0.75rem 0.9rem;
   background-color: rgba(30, 30, 30, 0.7);
   border: 1px solid rgba(60, 60, 60, 0.5);
   border-radius: 4px;
   color: #f0f0f0;
   font-family: 'Rajdhani', 'Roboto', sans-serif;
-  font-size: 1rem;
-  resize: vertical;
+  font-size: 0.95rem;
+  resize: none;
   overflow-y: auto;
   transition: all 0.3s;
 }
@@ -655,7 +650,7 @@ export default defineComponent({
 }
 
 .setting-group {
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
 }
 
 label {
@@ -797,15 +792,13 @@ select {
 }
 
 .generate-button-container {
-  margin-top: 1.5rem;
-  padding-top: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 0.25rem;
   margin-bottom: 0;
-  padding-bottom: 0;
 }
 
 .generate-button {
   width: 100%;
-  margin-bottom: 0.5rem;
   padding: 1rem;
   background: linear-gradient(
     45deg,
@@ -824,6 +817,7 @@ select {
   overflow: hidden;
   text-transform: uppercase;
   font-weight: bold;
+  margin-bottom: 0.5rem;
 }
 
 .generate-button::before {
@@ -862,13 +856,10 @@ select {
 }
 
 .image-preview-container {
-  /* Use fixed dimensions */
   width: 100%;
   height: 600px;
   min-height: 600px;
   max-height: 600px;
-
-  /* Styling */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -925,7 +916,6 @@ select {
 }
 
 .image-container {
-  /* Fixed container that maintains aspect ratio */
   width: 100%;
   height: 100%;
   display: flex;
@@ -935,16 +925,11 @@ select {
 }
 
 .generated-image {
-  /* Make image adjust to container */
   max-width: 100%;
   max-height: 100%;
   width: auto;
   height: auto;
-
-  /* Maintain aspect ratio while fitting in box */
   object-fit: contain;
-
-  /* Styling */
   border-radius: 4px;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
 }
@@ -997,7 +982,6 @@ select {
 }
 
 /* Media Queries for Responsiveness */
-/* Ensure media queries maintain fixed dimensions */
 @media (max-width: 1200px) {
   .image-preview-container {
     height: 500px;
