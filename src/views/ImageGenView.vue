@@ -162,6 +162,7 @@
             <div class="generation-status">Generating image...</div>
           </div>
 
+          <!-- If image is generated, show the image -->
           <div v-if="generatedImage" class="image-container">
             <img :src="generatedImage" alt="Generated image" class="generated-image" />
           </div>
@@ -521,7 +522,8 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   position: relative;
-  overflow: hidden;
+  overflow-y: auto; /* Allow scrolling if content overflows */
+  max-height: calc(100vh - 100px); /* Limit height to prevent overflow issues */
 }
 
 .control-panel::before {
@@ -553,6 +555,10 @@ export default defineComponent({
   flex-direction: column;
   position: relative;
   overflow: hidden;
+  /* Fixed width with reasonable constraints */
+  max-width: 100%;
+  /* Set fixed height to prevent panel size changes */
+  height: 700px; /* Adjust based on your layout */
 }
 
 .preview-panel::before {
@@ -783,7 +789,7 @@ select {
 }
 
 .generate-button-container {
-  margin-top: auto;
+  margin-top: 1.5rem;
   padding-top: 1rem;
 }
 
@@ -845,7 +851,13 @@ select {
 }
 
 .image-preview-container {
-  flex: 1;
+  /* Use fixed dimensions */
+  width: 100%;
+  height: 600px;
+  min-height: 600px;
+  max-height: 600px;
+
+  /* Styling */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -857,12 +869,13 @@ select {
 }
 
 .empty-preview {
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
-  width: 100%;
+  box-sizing: border-box;
 }
 
 .placeholder-message {
@@ -901,18 +914,26 @@ select {
 }
 
 .image-container {
+  /* Fixed container that maintains aspect ratio */
+  width: 100%;
+  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100%;
-  width: 100%;
-  padding: 1rem;
+  padding: 0;
 }
 
 .generated-image {
+  /* Make image adjust to container */
   max-width: 100%;
   max-height: 100%;
+  width: auto;
+  height: auto;
+
+  /* Maintain aspect ratio while fitting in box */
   object-fit: contain;
+
+  /* Styling */
   border-radius: 4px;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
 }
@@ -965,52 +986,40 @@ select {
 }
 
 /* Media Queries for Responsiveness */
+/* Ensure media queries maintain fixed dimensions */
 @media (max-width: 1200px) {
-  .imagegen-layout {
-    flex-direction: column;
-    height: auto;
-  }
-
-  .control-panel, .preview-panel {
-    flex: none;
-    width: 100%;
-  }
-
   .image-preview-container {
     height: 500px;
+    min-height: 500px;
+    max-height: 500px;
+  }
+
+  .preview-panel {
+    height: 600px;
   }
 }
 
 @media (max-width: 768px) {
-  .navbar-links, .navbar-user-manage {
-    display: none;
-  }
-
-  .mobile-menu-toggle {
-    display: block;
-  }
-
-  .mobile-menu {
-    display: flex;
-  }
-
   .image-preview-container {
     height: 400px;
+    min-height: 400px;
+    max-height: 400px;
+  }
+
+  .preview-panel {
+    height: 500px;
   }
 }
 
 @media (max-width: 600px) {
   .image-preview-container {
     height: 300px;
+    min-height: 300px;
+    max-height: 300px;
   }
 
-  .slider-container {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .numeric-input {
-    width: 100%;
+  .preview-panel {
+    height: 400px;
   }
 }
 </style>
