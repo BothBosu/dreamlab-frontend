@@ -522,8 +522,12 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   position: relative;
-  overflow-y: auto; /* Allow scrolling if content overflows */
-  max-height: calc(100vh - 100px); /* Limit height to prevent overflow issues */
+  height: 700px;
+  min-height: 700px;
+  max-height: 700px;
+  justify-content: flex-start;
+  /* Allow scrolling if content is too tall */
+  overflow-y: auto;
 }
 
 .control-panel::before {
@@ -540,6 +544,10 @@ export default defineComponent({
     rgba(128, 0, 255, 0.8)
   );
   animation: rgbBorder 5s linear infinite;
+}
+
+.control-panel > :last-child {
+  margin-bottom: 0; /* Ensure the last element has no margin */
 }
 
 .preview-panel {
@@ -790,11 +798,14 @@ select {
 
 .generate-button-container {
   margin-top: 1.5rem;
-  padding-top: 1rem;
+  padding-top: 0.5rem;
+  margin-bottom: 0;
+  padding-bottom: 0;
 }
 
 .generate-button {
   width: 100%;
+  margin-bottom: 0.5rem;
   padding: 1rem;
   background: linear-gradient(
     45deg,
