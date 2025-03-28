@@ -150,6 +150,11 @@ export default defineComponent({
       }
     },
     async toggleLike(image: any) {
+      // Check authentication status first
+      if (!this.isAuthenticated) {
+        alert('Please log in to like images.');
+        return;
+      }
       try {
         await axios.post(`http://localhost:8080/api/likes/${image.id}/toggle`);
         const res = await axios.get(`http://localhost:8080/api/likes/${image.id}/count`);
