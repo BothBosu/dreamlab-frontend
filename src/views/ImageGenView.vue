@@ -29,15 +29,17 @@
 
     <!-- Mobile Menu -->
     <div class="mobile-menu" :class="{ 'active': mobileMenuOpen }">
-      <router-link to="/dashboard" class="mobile-nav-link" @click="toggleMobileMenu">Dashboard
-      </router-link>
-      <router-link to="/gallery" class="mobile-nav-link" @click="toggleMobileMenu">Gallery
-      </router-link>
-      <router-link to="/imagegen" class="mobile-nav-link" @click="toggleMobileMenu">Generate
-      </router-link>
-
-      <!-- TODO: User Management -->
-      <!--<router-link to="/login" class="mobile-nav-link" @click="toggleMobileMenu">Login</router-link>-->
+      <router-link to="/gallery" class="mobile-nav-link" @click="toggleMobileMenu">Gallery</router-link>
+      <router-link to="/imagegen" class="mobile-nav-link" @click="toggleMobileMenu">Generate</router-link>
+      <router-link to="/dashboard" class="mobile-nav-link" @click="toggleMobileMenu">Dashboard</router-link>
+      <template v-if="isAuthenticated">
+        <span class="mobile-username">{{ userDisplayName }}</span>
+        <button @click="logout" class="mobile-logout-btn">Logout</button>
+      </template>
+      <template v-else>
+        <router-link to="/login" class="mobile-nav-link" @click="toggleMobileMenu">Login</router-link>
+        <router-link to="/register" class="mobile-nav-link register" @click="toggleMobileMenu">Register</router-link>
+      </template>
     </div>
 
     <div class="content-wrapper">
@@ -172,7 +174,6 @@
             </div>
           </div>
 
-          <!-- NEW: Updated Action Buttons -->
           <div class="image-actions">
             <button
               class="action-button download-button"
@@ -232,7 +233,7 @@
       </div>
     </div>
 
-    <!-- NEW: Share Modal -->
+    <!-- Share Modal -->
     <div class="share-modal-overlay" v-if="shareModalOpen" @click="closeShareModal">
       <div class="share-modal" @click.stop>
         <div class="share-modal-header">
@@ -290,12 +291,13 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive, ref } from 'vue'
+import { defineComponent, reactive, ref, computed } from 'vue'
 import axios from 'axios'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
 export default defineComponent({
-  inputPrompt: 'ImageGenView',
+  name: 'ImageGenView',
   setup() {
     const prompt = ref('')
     const promptMaxLength = 200
@@ -309,8 +311,19 @@ export default defineComponent({
     const generatedImage = ref('')
     const mobileMenuOpen = ref(false)
     const route = useRoute()
+    const router = useRouter()
+    const authStore = useAuthStore()
 
-    // NEW: Share modal state
+    // Auth computed properties
+    const isAuthenticated = computed(() => authStore.isAuthenticated)
+    const userDisplayName = computed(() => authStore.user?.username || 'User')
+
+    // Logout function
+    const logout = async () => {
+      await authStore.logout()
+      router.push('/login')
+    }
+
     const shareModalOpen = ref(false)
     const shareLink = ref('https://getimg.ai/img/img-MTXWp2lPrHZI')
 
@@ -506,7 +519,10 @@ export default defineComponent({
       openShareModal,
       closeShareModal,
       shareLink,
-      copyShareLink
+      copyShareLink,
+      isAuthenticated,
+      userDisplayName,
+      logout
     }
   }
 })
@@ -630,6 +646,29 @@ export default defineComponent({
   transform: translateY(-2px);
 }
 
+.username {
+  color: rgba(200, 200, 255, 0.9);
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+}
+
+.logout-btn {
+  background: transparent;
+  color: rgba(255, 100, 100, 0.9);
+  border: 1px solid rgba(255, 100, 100, 0.5);
+  border-radius: 4px;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.logout-btn:hover {
+  background-color: rgba(255, 100, 100, 0.1);
+  color: rgba(255, 120, 120, 1);
+  box-shadow: 0 0 10px rgba(255, 100, 100, 0.3);
+}
+
 .mobile-menu-toggle {
   display: none;
   cursor: pointer;
@@ -675,6 +714,30 @@ export default defineComponent({
     rgba(0, 100, 255, 0.5),
     rgba(0, 150, 255, 0.6)
   );
+}
+
+.mobile-username {
+  color: rgba(200, 200, 255, 0.9);
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid rgba(50, 50, 50, 0.5);
+}
+
+.mobile-logout-btn {
+  background: transparent;
+  color: rgba(255, 100, 100, 0.9);
+  border: 1px solid rgba(255, 100, 100, 0.5);
+  margin: 0.75rem 1.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-align: center;
+}
+
+.mobile-logout-btn:hover {
+  background-color: rgba(255, 100, 100, 0.1);
 }
 
 /* Main Layout */
@@ -1104,7 +1167,6 @@ select {
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
 }
 
-/* NEW: Updated Action Buttons Styles */
 .image-actions {
   display: flex;
   justify-content: center;
@@ -1165,7 +1227,6 @@ select {
   height: 16px;
 }
 
-/* NEW: Share Modal Styles */
 .share-modal-overlay {
   position: fixed;
   top: 0;
