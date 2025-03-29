@@ -172,15 +172,46 @@
             </div>
           </div>
 
+          <!-- NEW: Updated Action Buttons -->
           <div class="image-actions">
-            <button class="action-button" title="Save image" @click="saveImage">
-              <i class="icon-save">💾</i>
+            <button
+              class="action-button download-button"
+              title="Download image"
+              @click="downloadImage"
+              :disabled="!generatedImage"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>Download</span>
             </button>
-            <button class="action-button" title="Copy to clipboard" @click="copyImage">
-              <i class="icon-copy">📋</i>
+            <button
+              class="action-button save-button"
+              title="Save to account"
+              @click="saveImage"
+              :disabled="!generatedImage"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+              </svg>
+              <span>Save</span>
             </button>
-            <button class="action-button" title="Share image" @click="shareImage">
-              <i class="icon-share">🔗</i>
+            <button
+              class="action-button share-button"
+              title="Share image"
+              @click="openShareModal"
+              :disabled="!generatedImage"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                <polyline points="16 6 12 2 8 6"></polyline>
+                <line x1="12" y1="2" x2="12" y2="15"></line>
+              </svg>
+              <span>Share</span>
             </button>
           </div>
         </div>
@@ -197,6 +228,61 @@
             <span v-if="isGenerating" class="loader"></span>
             <span v-else>GENERATE</span>
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEW: Share Modal -->
+    <div class="share-modal-overlay" v-if="shareModalOpen" @click="closeShareModal">
+      <div class="share-modal" @click.stop>
+        <div class="share-modal-header">
+          <h3>Share image</h3>
+          <button class="close-modal-btn" @click="closeShareModal">×</button>
+        </div>
+        <div class="share-modal-content">
+          <div class="share-image-preview">
+            <img v-if="generatedImage" :src="generatedImage" alt="Generated image" />
+          </div>
+          <div class="share-options">
+            <div class="social-share-buttons">
+              <button class="social-btn twitter">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path>
+                </svg>
+              </button>
+              <button class="social-btn facebook">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+                </svg>
+              </button>
+              <button class="social-btn reddit">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <path d="M8 12h.01M16 12h.01M12 16c2.5 0 4.5-1.5 5-3"></path>
+                  <path d="M9 15c.83.67 1.5 1 3 1"></path>
+                </svg>
+              </button>
+              <button class="social-btn pinterest">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 2H6a4 4 0 0 0-4 4v12a4 4 0 0 0 4 4h12a4 4 0 0 0 4-4V6a4 4 0 0 0-4-4z"></path>
+                  <path d="M12 15 9 12l-3 3M10 9h4v4"></path>
+                </svg>
+              </button>
+            </div>
+            <div class="share-link-container">
+              <span class="or-divider">or copy link</span>
+              <div class="input-with-button">
+                <input type="text" v-model="shareLink" readonly class="share-link-input"/>
+                <button class="copy-link-btn" @click="copyShareLink">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                  <span>Copy</span>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -223,6 +309,10 @@ export default defineComponent({
     const generatedImage = ref('')
     const mobileMenuOpen = ref(false)
     const route = useRoute()
+
+    // NEW: Share modal state
+    const shareModalOpen = ref(false)
+    const shareLink = ref('https://getimg.ai/img/img-MTXWp2lPrHZI')
 
     const settings = reactive({
       width: 1024,
@@ -267,16 +357,82 @@ export default defineComponent({
           }
         })
 
-        // Assuming the API returns the image URL in the response
-        generatedImage.value = response.data.imageUrl
+        // Log the response to inspect its structure
+        console.log('API Response:', response)
+
+        // Handle different response formats
+        let imageUrl
+
+        if (typeof response.data === 'string') {
+          // If the response is directly a string (URL)
+          imageUrl = response.data
+        } else if (typeof response.data === 'object') {
+          // If the response is a JSON object
+          if (response.data.imageUrl) {
+            imageUrl = response.data.imageUrl
+          } else if (response.data.url) {
+            imageUrl = response.data.url
+          } else {
+            // Try to find any property that looks like a URL
+            const possibleUrlProps = Object.entries(response.data)
+              .find(([_, value]) =>
+                typeof value === 'string' &&
+                (value.startsWith('http://') || value.startsWith('https://'))
+              )
+
+            if (possibleUrlProps) {
+              imageUrl = possibleUrlProps[1]
+            } else {
+              throw new Error('Could not find image URL in the response')
+            }
+          }
+        }
+
+        // Check if we have a valid URL and it's not an error message
+        if (!imageUrl || (typeof imageUrl === 'string' && imageUrl.startsWith('Error:'))) {
+          throw new Error(imageUrl || 'Invalid response from server')
+        }
+
+        // Store the image URL
+        generatedImage.value = imageUrl
+
+        // Set share link to the same URL
+        shareLink.value = imageUrl
+
+        console.log('Image URL set to:', imageUrl)
+
       } catch (error) {
         console.error('Error generating image:', error)
-        alert('Failed to generate image. Please try again.')
+        alert('Failed to generate image. Please try again: ' + (error.message || 'Unknown error'))
       } finally {
         isGenerating.value = false
       }
     }
 
+    // Download image function
+    const downloadImage = async () => {
+      if (!generatedImage.value) return
+
+      try {
+        // Create an anchor element and trigger download
+        const response = await fetch(generatedImage.value)
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.style.display = 'none'
+        a.href = url
+        a.download = `dreamlab-${prompt.value.substring(0, 20).replace(/[^a-z0-9]/gi, '-')}.png`
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+      } catch (error) {
+        console.error('Error downloading image:', error)
+        alert('Failed to download image. Please try again.')
+      }
+    }
+
+    // Save image to S3 function (from original implementation)
     const saveImage = async () => {
       if (!generatedImage.value) return
 
@@ -302,33 +458,30 @@ export default defineComponent({
       }
     }
 
-    const copyImage = async () => {
-      if (!generatedImage.value) {
-        alert('No image to copy. Please generate an image first.')
-        return
-      }
-
-      try {
-        const response = await fetch(generatedImage.value)
-        const blob = await response.blob()
-
-        // Check if Clipboard API with ClipboardItem is supported
-        if (navigator.clipboard && window.ClipboardItem) {
-          const item = new ClipboardItem({ [blob.type]: blob })
-          await navigator.clipboard.write([item])
-          alert('Image copied to clipboard!')
-        } else {
-          alert('Copy to clipboard is not supported in this browser. Creating a download link instead.')
-        }
-      } catch (error) {
-        console.error('Error copying image to clipboard:', error)
-        alert('Failed to copy image to clipboard. ' + error.message)
-      }
+    const openShareModal = () => {
+      if (!generatedImage.value) return
+      shareModalOpen.value = true
     }
 
-    const shareImage = () => {
-      // Implementation for sharing image
-      alert('Share functionality will be implemented with the actual API')
+    const closeShareModal = () => {
+      shareModalOpen.value = false
+    }
+
+    const copyShareLink = async () => {
+      try {
+        await navigator.clipboard.writeText(shareLink.value)
+        alert('Link copied to clipboard!')
+      } catch (error) {
+        console.error('Error copying to clipboard:', error)
+        // Fallback for browsers that don't support clipboard API
+        const el = document.createElement('textarea')
+        el.value = shareLink.value
+        document.body.appendChild(el)
+        el.select()
+        document.execCommand('copy')
+        document.body.removeChild(el)
+        alert('Link copied to clipboard!')
+      }
     }
 
     return {
@@ -347,9 +500,13 @@ export default defineComponent({
       toggleMobileMenu,
       randomizeSeed,
       generateImage,
+      downloadImage,
       saveImage,
-      copyImage,
-      shareImage
+      shareModalOpen,
+      openShareModal,
+      closeShareModal,
+      shareLink,
+      copyShareLink
     }
   }
 })
@@ -375,7 +532,6 @@ export default defineComponent({
   flex-direction: column;
 }
 
-/* Navbar Styles */
 .navbar {
   display: flex;
   justify-content: space-between;
@@ -948,6 +1104,7 @@ select {
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
 }
 
+/* NEW: Updated Action Buttons Styles */
 .image-actions {
   display: flex;
   justify-content: center;
@@ -959,19 +1116,223 @@ select {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  background-color: rgba(30, 30, 30, 0.7);
-  border: 1px solid rgba(60, 60, 60, 0.5);
+  gap: 8px;
+  padding: 10px 20px;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s;
+  font-weight: 500;
+  font-size: 14px;
 }
 
-.action-button:hover {
-  background-color: rgba(50, 50, 50, 0.9);
-  transform: translateY(-2px);
-  box-shadow: 0 0 8px rgba(0, 150, 255, 0.3);
+.download-button {
+  background-color: #1a1a1a;
+  color: white;
+  border: 1px solid #333;
+}
+
+.download-button:hover {
+  background-color: #2a2a2a;
+}
+
+.save-button {
+  background-color: #087ea4;
+  color: white;
+  border: none;
+}
+
+.save-button:hover {
+  background-color: #0a96c2;
+}
+
+.share-button {
+  background-color: #5b3cc4;
+  color: white;
+  border: none;
+}
+
+.share-button:hover {
+  background-color: #6f48e3;
+}
+
+.action-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.action-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* NEW: Share Modal Styles */
+.share-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+}
+
+.share-modal {
+  background-color: #1a1a1a;
+  width: 90%;
+  max-width: 500px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5);
+  animation: modalFadeIn 0.3s ease-out;
+}
+
+.share-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #333;
+}
+
+.share-modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: white;
+}
+
+.close-modal-btn {
+  background: transparent;
+  border: none;
+  color: #999;
+  font-size: 24px;
+  cursor: pointer;
+  line-height: 1;
+  transition: color 0.3s;
+}
+
+.close-modal-btn:hover {
+  color: white;
+}
+
+.share-modal-content {
+  padding: 20px;
+}
+
+.share-image-preview {
+  width: 100%;
+  height: 200px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #121212;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.share-image-preview img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.share-options {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.social-share-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.social-btn {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.social-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+}
+
+.twitter {
+  background-color: #000;
+  color: white;
+}
+
+.facebook {
+  background-color: #1877f2;
+  color: white;
+}
+
+.reddit {
+  background-color: #ff4500;
+  color: white;
+}
+
+.pinterest {
+  background-color: #e60023;
+  color: white;
+}
+
+.or-divider {
+  display: block;
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+  margin: 10px 0;
+  position: relative;
+}
+
+.share-link-container {
+  margin-top: 5px;
+}
+
+.input-with-button {
+  display: flex;
+  width: 100%;
+}
+
+.share-link-input {
+  flex: 1;
+  padding: 10px 12px;
+  background-color: #333;
+  border: 1px solid #444;
+  border-right: none;
+  border-radius: 4px 0 0 4px;
+  color: white;
+  font-size: 14px;
+}
+
+.copy-link-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  background-color: #5b3cc4;
+  color: white;
+  border: none;
+  border-radius: 0 4px 4px 0;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.copy-link-btn:hover {
+  background-color: #6f48e3;
 }
 
 @keyframes rgbBorder {
@@ -992,6 +1353,17 @@ select {
   }
   100% {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -1035,11 +1407,24 @@ select {
   .mobile-menu {
     display: flex;
   }
+
+  .action-button {
+    padding: 8px 16px;
+  }
 }
 
 @media (max-width: 600px) {
   .image-preview-container {
     height: 300px;
+  }
+
+  .share-modal {
+    width: 95%;
+  }
+
+  .social-btn {
+    width: 40px;
+    height: 40px;
   }
 }
 </style>
