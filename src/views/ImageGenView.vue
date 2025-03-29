@@ -32,116 +32,154 @@
       <!--<router-link to="/login" class="mobile-nav-link" @click="toggleMobileMenu">Login</router-link>-->
     </div>
 
-    <div class="imagegen-layout">
-      <!-- Left Panel - Controls -->
-      <div class="control-panel">
-        <div class="panel-section">
-          <h2>Prompt</h2>
-          <div class="prompt-container">
-            <textarea
-              v-model="prompt"
-              placeholder="Enter your image prompt here..."
-              :maxlength="promptMaxLength"
-              class="prompt-input"
-              @input="updateCharCount"
-            ></textarea>
-            <div class="char-counter">{{ charCount }}/{{ promptMaxLength }}</div>
+    <div class="content-wrapper">
+      <div class="imagegen-layout">
+        <!-- Left Panel - Controls -->
+        <div class="control-panel">
+          <div class="panel-section">
+            <h2>Prompt</h2>
+            <div class="prompt-container">
+              <textarea
+                v-model="prompt"
+                placeholder="Enter your image prompt here..."
+                :maxlength="promptMaxLength"
+                class="prompt-input"
+                @input="updateCharCount"
+              ></textarea>
+              <div class="char-counter">{{ charCount }}/{{ promptMaxLength }}</div>
+            </div>
+          </div>
+
+          <div class="panel-section">
+            <h2>Negative Prompt</h2>
+            <div class="prompt-container">
+              <textarea
+                v-model="negativePrompt"
+                placeholder="Enter things to avoid in the image..."
+                :maxlength="negativePromptMaxLength"
+                class="prompt-input"
+                @input="updateNegativeCharCount"
+              ></textarea>
+              <div class="char-counter">{{ negativeCharCount }}/{{ negativePromptMaxLength }}</div>
+            </div>
+          </div>
+
+          <div class="panel-section">
+            <div class="setting-group">
+              <label for="width">Width: {{ settings.width }}px</label>
+              <div class="slider-container">
+                <input
+                  type="range"
+                  id="width"
+                  v-model.number="settings.width"
+                  min="512"
+                  max="1024"
+                  step="8"
+                  class="slider"
+                />
+                <input
+                  type="number"
+                  v-model.number="settings.width"
+                  min="512"
+                  max="1024"
+                  step="8"
+                  class="numeric-input"
+                />
+              </div>
+            </div>
+
+            <div class="setting-group">
+              <label for="height">Height: {{ settings.height }}px</label>
+              <div class="slider-container">
+                <input
+                  type="range"
+                  id="height"
+                  v-model.number="settings.height"
+                  min="512"
+                  max="1024"
+                  step="8"
+                  class="slider"
+                />
+                <input
+                  type="number"
+                  v-model.number="settings.height"
+                  min="512"
+                  max="1024"
+                  step="8"
+                  class="numeric-input"
+                />
+              </div>
+            </div>
+
+            <div class="setting-group">
+              <label for="steps">Steps: {{ settings.steps }}</label>
+              <div class="slider-container">
+                <input
+                  type="range"
+                  id="steps"
+                  v-model.number="settings.steps"
+                  min="1"
+                  max="100"
+                  class="slider"
+                />
+              </div>
+            </div>
+
+            <div class="setting-group">
+              <label for="seed">Seed</label>
+              <div class="seed-container">
+                <input
+                  type="number"
+                  id="seed"
+                  v-model.number="settings.seed"
+                  min="1"
+                  max="2147483647"
+                  class="seed-input"
+                />
+                <button @click="randomizeSeed" class="seed-random">
+                  <i class="icon-random">🔄</i>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="panel-section">
-          <h2>Negative Prompt</h2>
-          <div class="prompt-container">
-            <textarea
-              v-model="negativePrompt"
-              placeholder="Enter things to avoid in the image..."
-              :maxlength="negativePromptMaxLength"
-              class="prompt-input"
-              @input="updateNegativeCharCount"
-            ></textarea>
-            <div class="char-counter">{{ negativeCharCount }}/{{ negativePromptMaxLength }}</div>
+        <!-- Right Panel - Image Preview -->
+        <div class="preview-panel">
+          <div class="image-preview-container">
+            <div v-if="isGenerating" class="generating-overlay">
+              <div class="loader"></div>
+              <div class="generation-status">Generating image...</div>
+            </div>
+
+            <!-- If image is generated, show the image -->
+            <div v-if="generatedImage" class="image-container">
+              <img :src="generatedImage" alt="Generated image" class="generated-image" />
+            </div>
+
+            <div v-else class="empty-preview">
+              <div class="placeholder-message">
+                Your generated image will appear here
+              </div>
+            </div>
+          </div>
+
+          <div class="image-actions">
+            <button class="action-button" title="Save image" @click="saveImage">
+              <i class="icon-save">💾</i>
+            </button>
+            <button class="action-button" title="Copy to clipboard" @click="copyImage">
+              <i class="icon-copy">📋</i>
+            </button>
+            <button class="action-button" title="Share image" @click="shareImage">
+              <i class="icon-share">🔗</i>
+            </button>
           </div>
         </div>
+      </div>
 
-        <div class="panel-section">
-          <div class="setting-group">
-            <label for="width">Width: {{ settings.width }}px</label>
-            <div class="slider-container">
-              <input
-                type="range"
-                id="width"
-                v-model.number="settings.width"
-                min="512"
-                max="1024"
-                step="8"
-                class="slider"
-              />
-              <input
-                type="number"
-                v-model.number="settings.width"
-                min="512"
-                max="1024"
-                step="8"
-                class="numeric-input"
-              />
-            </div>
-          </div>
-
-          <div class="setting-group">
-            <label for="height">Height: {{ settings.height }}px</label>
-            <div class="slider-container">
-              <input
-                type="range"
-                id="height"
-                v-model.number="settings.height"
-                min="512"
-                max="1024"
-                step="8"
-                class="slider"
-              />
-              <input
-                type="number"
-                v-model.number="settings.height"
-                min="512"
-                max="1024"
-                step="8"
-                class="numeric-input"
-              />
-            </div>
-          </div>
-
-          <div class="setting-group">
-            <label for="steps">Steps: {{ settings.steps }}</label>
-            <div class="slider-container">
-              <input
-                type="range"
-                id="steps"
-                v-model.number="settings.steps"
-                min="1"
-                max="100"
-                class="slider"
-              />
-            </div>
-          </div>
-
-          <div class="setting-group">
-            <label for="seed">Seed</label>
-            <div class="seed-container">
-              <input
-                type="number"
-                id="seed"
-                v-model.number="settings.seed"
-                min="1"
-                max="2147483647"
-                class="seed-input"
-              />
-              <button @click="randomizeSeed" class="seed-random">
-                <i class="icon-random">🔄</i>
-              </button>
-            </div>
-          </div>
-        </div>
-
+      <!-- Generate Button Section (Moved outside of panels) -->
+      <div class="panel-buttons-container">
         <div class="generate-button-container">
           <button
             @click="generateImage"
@@ -149,40 +187,7 @@
             :disabled="isGenerating"
           >
             <span v-if="isGenerating" class="loader"></span>
-            <span v-else>Generate</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Right Panel - Image Preview -->
-      <div class="preview-panel">
-        <div class="image-preview-container">
-          <div v-if="isGenerating" class="generating-overlay">
-            <div class="loader"></div>
-            <div class="generation-status">Generating image...</div>
-          </div>
-
-          <!-- If image is generated, show the image -->
-          <div v-if="generatedImage" class="image-container">
-            <img :src="generatedImage" alt="Generated image" class="generated-image" />
-          </div>
-
-          <div v-else class="empty-preview">
-            <div class="placeholder-message">
-              Your generated image will appear here
-            </div>
-          </div>
-        </div>
-
-        <div class="image-actions">
-          <button class="action-button" title="Save image" @click="saveImage">
-            <i class="icon-save">💾</i>
-          </button>
-          <button class="action-button" title="Copy to clipboard" @click="copyImage">
-            <i class="icon-copy">📋</i>
-          </button>
-          <button class="action-button" title="Share image" @click="shareImage">
-            <i class="icon-share">🔗</i>
+            <span v-else>GENERATE</span>
           </button>
         </div>
       </div>
@@ -354,6 +359,14 @@ export default defineComponent({
   font-family: 'Rajdhani', 'Roboto', sans-serif;
 }
 
+.content-wrapper {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
 /* Navbar Styles */
 .navbar {
   display: flex;
@@ -365,6 +378,7 @@ export default defineComponent({
   box-shadow: 0 0 15px rgba(0, 150, 255, 0.2);
   position: relative;
   z-index: 100;
+  width: 100%;
 }
 
 .navbar::before {
@@ -503,11 +517,9 @@ export default defineComponent({
 .imagegen-layout {
   display: flex;
   width: 100%;
-  max-width: 1400px;
-  min-height: calc(100vh - 80px);
   gap: 1.5rem;
   padding: 1rem;
-  margin: 0 auto;
+  padding-bottom: 0;
 }
 
 .control-panel {
@@ -522,13 +534,8 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   position: relative;
-
-  /* Fixed size */
   height: 700px;
-  min-height: 700px;
-
-  /* Remove scrollbar */
-  overflow-y: hidden;
+  overflow-y: visible;
 }
 
 .control-panel::before {
@@ -791,20 +798,22 @@ select {
   color: rgba(200, 200, 200, 0.8);
 }
 
+/* Generate Button Container */
+.panel-buttons-container {
+  display: flex;
+  width: 100%;
+  padding: 0 1rem;
+}
+
 .generate-button-container {
-  margin-top: 1rem;
-  padding-top: 0.25rem;
-  margin-bottom: 0;
+  width: 30%;
+  margin-top: 12px;
 }
 
 .generate-button {
   width: 100%;
   padding: 1rem;
-  background: linear-gradient(
-    45deg,
-    rgba(0, 100, 255, 0.8),
-    rgba(0, 150, 255, 0.9)
-  );
+  background: #1a75ff;
   color: white;
   border: none;
   border-radius: 4px;
@@ -817,7 +826,6 @@ select {
   overflow: hidden;
   text-transform: uppercase;
   font-weight: bold;
-  margin-bottom: 0.5rem;
 }
 
 .generate-button::before {
@@ -858,8 +866,6 @@ select {
 .image-preview-container {
   width: 100%;
   height: 600px;
-  min-height: 600px;
-  max-height: 600px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -983,38 +989,49 @@ select {
 
 /* Media Queries for Responsiveness */
 @media (max-width: 1200px) {
-  .image-preview-container {
-    height: 500px;
-    min-height: 500px;
-    max-height: 500px;
+  .control-panel, .preview-panel {
+    height: 600px;
   }
 
-  .preview-panel {
-    height: 600px;
+  .image-preview-container {
+    height: 500px;
   }
 }
 
 @media (max-width: 768px) {
-  .image-preview-container {
-    height: 400px;
-    min-height: 400px;
-    max-height: 400px;
+  .imagegen-layout {
+    flex-direction: column;
   }
 
-  .preview-panel {
-    height: 500px;
+  .control-panel, .preview-panel {
+    height: auto;
+    width: 100%;
+  }
+
+  .generate-button-container {
+    width: 100%;
+  }
+
+  .image-preview-container {
+    height: 350px;
+  }
+
+  .mobile-menu-toggle {
+    display: block;
+  }
+
+  .navbar-links {
+    display: none;
+  }
+
+  .mobile-menu {
+    display: flex;
   }
 }
 
 @media (max-width: 600px) {
   .image-preview-container {
     height: 300px;
-    min-height: 300px;
-    max-height: 300px;
-  }
-
-  .preview-panel {
-    height: 400px;
   }
 }
 </style>
