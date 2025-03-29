@@ -3,7 +3,9 @@
     <!-- Navbar -->
     <div class="navbar">
       <div class="navbar-logo">
-        <span class="logo-text">DREAMLAB</span>
+        <router-link to="/" class="logo-link">
+          <span class="logo-text">DREAM LAB</span>
+        </router-link>
       </div>
       <div class="navbar-links">
         <router-link to="/gallery" class="nav-link">Gallery</router-link>
@@ -11,11 +13,17 @@
         <router-link to="/dashboard" class="nav-link">Dashboard</router-link>
       </div>
       <div class="navbar-user-manage">
-        <!-- TODO: User Management -->
-        <!--<router-link to="/login" class="auth-link">Login</router-link>-->
+        <template v-if="isAuthenticated">
+          <span class="username">{{ userDisplayName }}</span>
+          <button @click="logout" class="logout-btn">Logout</button>
+        </template>
+        <template v-else>
+          <router-link to="/login" class="auth-link">Login</router-link>
+          <router-link to="/register" class="auth-link register">Register</router-link>
+        </template>
       </div>
       <div class="mobile-menu-toggle" @click="toggleMobileMenu">
-        <div class="hamburger-icon">≡</div>
+        <div>≡</div>
       </div>
     </div>
 
