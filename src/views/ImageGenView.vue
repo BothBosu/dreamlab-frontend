@@ -470,7 +470,7 @@ export default defineComponent({
       try {
         const response = await axios.post('/api/images/save', {
           imageUrl: generatedImage.value,
-          inputPrompt: prompt.value.substring(0, 30) // Use part of the prompt as the name
+          inputPrompt: prompt.value // Save the entire prompt
         }, {
           withCredentials: true // Ensure cookies are sent with the request
         });
