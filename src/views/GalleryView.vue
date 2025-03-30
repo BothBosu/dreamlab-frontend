@@ -53,26 +53,47 @@
 
     <div class="gallery-content">
       <h1>Image Gallery</h1>
-      <!-- Upload Form -->
-      <div class="upload-container">
-        <input type="file" @change="handleFileChange" accept="image/*" />
-        <button class="upload-btn" @click="uploadImage" :disabled="!selectedFile">Upload</button>
-      </div>
       <!-- Gallery -->
       <div class="gallery">
         <div class="gallery-item" v-for="image in images" :key="image.id">
-          <div class="image-container">
+          <div class="image-container" @click="openImageModal(image)">
             <img :src="image.url" :alt="image.title" />
             <button
-              @click="handleLikeClick(image)"
+              @click.stop="handleLikeClick(image)"
               class="like-button"
               :class="{ 'disabled': !isAuthenticated }"
             >
               <span class="heart-icon">❤️</span>
               <span class="like-count">{{ image.likes }}</span>
             </button>
+            <div class="image-overlay">
+              <span>Open</span>
+            </div>
           </div>
-          <p>{{ image.title }}</p>
+          <p>"{{ image.title }}"</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Full Image Modal -->
+    <div class="full-image-modal-overlay" v-if="showImageModal" @click="closeImageModal">
+      <div class="full-image-modal" @click.stop>
+        <button class="close-modal-btn" @click="closeImageModal">×</button>
+        <div class="full-image-container">
+          <img :src="selectedImage.url" :alt="selectedImage.title" class="modal-image" />
+        </div>
+        <div class="full-image-info">
+          <div class="title-with-like">
+            <h3>"{{ selectedImage.title }}"</h3>
+            <button
+              @click="handleLikeClick(selectedImage)"
+              class="modal-like-button"
+              :class="{ 'disabled': !isAuthenticated }"
+            >
+              <span class="heart-icon">❤️</span>
+              <span class="like-count">{{ selectedImage.likes }}</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -119,11 +140,12 @@ export default defineComponent({
   data() {
     return {
       images: [] as Array<{ id: number; url: string; title: string; likes: number }>,
-      selectedFile: null as File | null,
       showErrorModal: false,
       errorTitle: 'Authentication Required',
       errorMessage: 'Please log in to like images.',
-      errorButtonText: 'OK'
+      errorButtonText: 'OK',
+      showImageModal: false,
+      selectedImage: { id: 0, url: '', title: '', likes: 0 }
     };
   },
   methods: {
@@ -139,45 +161,6 @@ export default defineComponent({
         };
       }));
     },
-    handleFileChange(event: Event) {
-      const target = event.target as HTMLInputElement;
-      if (target.files && target.files.length > 0) {
-        this.selectedFile = target.files[0];
-      }
-    },
-    async uploadImage() {
-      if (!this.selectedFile) return;
-
-      if (!this.isAuthenticated) {
-        this.errorTitle = 'Authentication Required';
-        this.errorMessage = 'Please log in to upload images.';
-        this.showErrorModal = true;
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append("file", this.selectedFile);
-      try {
-        const response = await axios.post("http://localhost:8080/api/images/upload", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-        console.log("Upload response:", response.data);
-        // Add the new image to the gallery (from S3)
-        this.images.push({
-          id: response.data.id,
-          url: response.data.url + "?t=" + new Date().getTime(), // Prevent caching
-          title: `Image ${response.data.id}`,
-          likes: 0,
-        });
-        this.selectedFile = null;
-      } catch (error) {
-        this.errorTitle = 'Upload Failed';
-        this.errorMessage = error.response?.status === 403
-          ? 'Please log in to upload images.'
-          : 'An error occurred while uploading the image.';
-        this.showErrorModal = true;
-      }
-    },
     handleLikeClick(image: any) {
       if (!this.isAuthenticated) {
         this.errorTitle = 'Authentication Required';
@@ -191,15 +174,33 @@ export default defineComponent({
     },
     async toggleLike(image: any) {
       try {
-        await axios.post(`http://localhost:8080/api/likes/${image.id}/toggle`);
+        await axios.post(`http://localhost:8080/api/likes/${image.id}/toggle`, {}, {
+          withCredentials: true
+        });
         const res = await axios.get(`http://localhost:8080/api/likes/${image.id}/count`);
         image.likes = res.data;
+
+        // Update the selected image like count if it's the same image
+        if (this.selectedImage.id === image.id) {
+          this.selectedImage.likes = res.data;
+        }
       } catch (error) {
         this.errorTitle = 'Operation Failed';
         this.errorMessage = 'Failed to like image. Please try again.';
         this.showErrorModal = true;
       }
     },
+    openImageModal(image: any) {
+      this.selectedImage = { ...image };
+      this.showImageModal = true;
+      // Add body class to prevent scrolling
+      document.body.classList.add('modal-open');
+    },
+    closeImageModal() {
+      this.showImageModal = false;
+      // Remove body class to restore scrolling
+      document.body.classList.remove('modal-open');
+    }
   },
   mounted() {
     this.fetchImages();
@@ -222,54 +223,6 @@ export default defineComponent({
   padding: 2rem;
   text-align: center;
   padding-top: 80px; /* Space for the fixed navbar */
-}
-
-.upload-container {
-  margin-bottom: 2rem;
-  background-color: rgba(15, 15, 15, 0.8);
-  border: 1px solid rgba(50, 50, 50, 0.5);
-  border-radius: 8px;
-  padding: 1.5rem;
-  display: inline-block;
-}
-
-input[type="file"] {
-  background-color: rgba(30, 30, 30, 0.7);
-  border: 1px solid rgba(60, 60, 60, 0.5);
-  padding: 0.5rem;
-  color: #f0f0f0;
-  border-radius: 4px;
-}
-
-.upload-btn {
-  margin-left: 1rem;
-  padding: 0.5rem 1.5rem;
-  background: linear-gradient(
-    45deg,
-    rgba(0, 100, 255, 0.8),
-    rgba(0, 150, 255, 0.9)
-  );
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.3s;
-  font-family: 'Rajdhani', 'Roboto', sans-serif;
-  letter-spacing: 1px;
-}
-
-.upload-btn:hover:not(:disabled) {
-  box-shadow: 0 0 10px rgba(0, 150, 255, 0.5);
-  transform: translateY(-2px);
-}
-
-.upload-btn:disabled {
-  background: linear-gradient(
-    45deg,
-    rgba(70, 70, 70, 0.8),
-    rgba(100, 100, 100, 0.9)
-  );
-  cursor: not-allowed;
 }
 
 .gallery {
@@ -298,6 +251,7 @@ input[type="file"] {
   position: relative;
   overflow: hidden;
   border-radius: 4px;
+  cursor: pointer;
 }
 
 .gallery-item img {
@@ -327,6 +281,7 @@ input[type="file"] {
   cursor: pointer;
   transition: all 0.3s;
   backdrop-filter: blur(2px);
+  z-index: 2;
 }
 
 .like-button:hover:not(.disabled) {
@@ -362,6 +317,153 @@ h1 {
   text-shadow:
     0 0 5px rgba(255, 255, 255, 0.3),
     0 0 10px rgba(0, 150, 255, 0.3);
+}
+
+/* Image Overlay */
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  color: white;
+  font-size: 0.9rem;
+  border-radius: 4px;
+}
+
+.image-container:hover .image-overlay {
+  opacity: 1;
+}
+
+/* Full Image Modal */
+.full-image-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.full-image-modal {
+  background-color: rgba(20, 20, 20, 0.9);
+  border-radius: 8px;
+  max-width: 90%;
+  max-height: 90vh;
+  width: auto;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+  animation: modalFadeIn 0.3s ease-out;
+}
+
+.close-modal-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  color: white;
+  font-size: 24px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  z-index: 10;
+}
+
+.close-modal-btn:hover {
+  background: rgba(50, 50, 50, 0.8);
+  transform: scale(1.1);
+}
+
+.full-image-container {
+  overflow: auto;
+  max-height: 75vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.full-image-container img {
+  max-width: 100%;
+  max-height: 75vh;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.full-image-info {
+  padding: 15px 20px;
+  border-top: 1px solid rgba(50, 50, 50, 0.5);
+  background-color: rgba(15, 15, 15, 0.9);
+}
+
+.full-image-info h3 {
+  margin: 0 0 10px 0;
+  font-size: 1.2rem;
+  color: rgba(240, 240, 240, 0.9);
+}
+
+.title-with-like {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.modal-like-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(40, 40, 40, 0.7);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 8px 15px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  backdrop-filter: blur(2px);
+}
+
+.modal-like-button:hover:not(.disabled) {
+  background: rgba(50, 50, 50, 0.9);
+  transform: scale(1.05);
+}
+
+.modal-like-button.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Animation */
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Navbar Styles */
@@ -563,6 +665,11 @@ h1 {
   background-color: rgba(255, 100, 100, 0.1);
 }
 
+/* Add this to prevent body scrolling when modal is open */
+:global(body.modal-open) {
+  overflow: hidden;
+}
+
 @media (max-width: 768px) {
   .navbar-links, .navbar-user-manage {
     display: none;
@@ -580,21 +687,16 @@ h1 {
     padding: 80px 1rem 2rem;
   }
 
-  .upload-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 90%;
-  }
-
-  .upload-btn {
-    margin-left: 0;
-    margin-top: 1rem;
-    width: 100%;
-  }
-
   .gallery-item img {
     max-width: 150px;
+  }
+
+  .full-image-modal {
+    width: 95%;
+  }
+
+  .full-image-container {
+    max-height: 60vh;
   }
 }
 
