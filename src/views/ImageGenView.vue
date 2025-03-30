@@ -192,14 +192,14 @@
               class="action-button save-button"
               title="Save to account"
               @click="saveImage"
-              :disabled="!generatedImage"
+              :disabled="!generatedImage || !isAuthenticated"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
                 <polyline points="17 21 17 13 7 13 7 21"></polyline>
                 <polyline points="7 3 7 8 15 8"></polyline>
               </svg>
-              <span>Save</span>
+              <span>{{ isAuthenticated ? 'Save' : 'Login to Save' }}</span>
             </button>
             <button
               class="action-button share-button"
@@ -449,13 +449,21 @@ export default defineComponent({
     const saveImage = async () => {
       if (!generatedImage.value) return
 
+      // Check if user is authenticated before allowing image save
+      if (!isAuthenticated.value) {
+        alert('You must be logged in to save images.');
+        return;
+      }
+
       try {
         const response = await axios.post('/api/images/save', {
           imageUrl: generatedImage.value,
           inputPrompt: prompt.value.substring(0, 30) // Use part of the prompt as the name
-        })
+        }, {
+          withCredentials: true // Ensure cookies are sent with the request
+        });
 
-        alert('Image saved successfully!')
+        alert('Image saved successfully!');
       } catch (error: any) {
         if (error.response && error.response.status === 400) {
           const message = error.response.data.message || error.response.data || 'Unknown error';
@@ -465,6 +473,8 @@ export default defineComponent({
           } else {
             alert("Error: " + message);
           }
+        } else if (error.response && error.response.status === 403) {
+          alert("You must be logged in to save images.");
         } else {
           alert("Something went wrong. Please try again later.");
         }
