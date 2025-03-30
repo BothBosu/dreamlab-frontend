@@ -76,6 +76,18 @@
 
           <div class="panel-section">
             <div class="setting-group">
+              <label>Aspect Ratio</label>
+              <div class="aspect-ratio-presets">
+                <button @click="setAspectRatio(1, 1)" class="aspect-preset" :class="{ active: isAspectRatioActive(1, 1) }">1:1</button>
+                <button @click="setAspectRatio(4, 3)" class="aspect-preset" :class="{ active: isAspectRatioActive(4, 3) }">4:3</button>
+                <button @click="setAspectRatio(3, 4)" class="aspect-preset" :class="{ active: isAspectRatioActive(3, 4) }">3:4</button>
+                <button @click="setAspectRatio(16, 9)" class="aspect-preset" :class="{ active: isAspectRatioActive(16, 9) }">16:9</button>
+                <button @click="setAspectRatio(9, 16)" class="aspect-preset" :class="{ active: isAspectRatioActive(9, 16) }">9:16</button>
+                <button @click="setAspectRatio(3, 2)" class="aspect-preset" :class="{ active: isAspectRatioActive(3, 2) }">3:2</button>
+              </div>
+            </div>
+
+            <div class="setting-group">
               <label for="width">Width: {{ settings.width }}px</label>
               <div class="slider-container">
                 <input
@@ -229,20 +241,18 @@
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Generate Button Section (Moved outside of panels) -->
-      <div class="panel-buttons-container">
-        <div class="generate-button-container">
-          <button
-            @click="generateImage"
-            class="generate-button"
-            :disabled="isGenerating"
-          >
-            <span v-if="isGenerating" class="loader"></span>
-            <span v-else>GENERATE</span>
-          </button>
-        </div>
-      </div>
+    <!-- Generate Button -->
+    <div class="generate-button-wrapper">
+      <button
+        @click="generateImage"
+        class="generate-button"
+        :disabled="isGenerating"
+      >
+        <span v-if="isGenerating" class="loader"></span>
+        <span v-else>GENERATE</span>
+      </button>
     </div>
 
     <!-- Share Modal -->
@@ -470,7 +480,7 @@ export default defineComponent({
       try {
         const response = await axios.post('/api/images/save', {
           imageUrl: generatedImage.value,
-          inputPrompt: prompt.value // Save the entire prompt
+          inputPrompt: prompt.value.substring(0, 30) // Use part of the prompt as the name
         }, {
           withCredentials: true // Ensure cookies are sent with the request
         });
@@ -525,6 +535,44 @@ export default defineComponent({
       }
     }
 
+    // Aspect ratio functions
+    const setAspectRatio = (width, height) => {
+      // Calculate new dimensions while maintaining ratio and constraints
+      // We need to find the largest dimensions that:
+      // 1. Maintain the requested aspect ratio
+      // 2. Stay within the 512-1024px constraints
+      // 3. Are divisible by 8 (as per the existing slider steps)
+
+      // Find the maximum possible dimensions for this ratio
+      let maxWidth = 1024;
+      let maxHeight = Math.round((height / width) * maxWidth);
+
+      // Ensure height is within bounds
+      if (maxHeight > 1024) {
+        maxHeight = 1024;
+        maxWidth = Math.round((width / height) * maxHeight);
+      }
+
+      // Ensure dimensions are divisible by 8
+      maxWidth = Math.floor(maxWidth / 8) * 8;
+      maxHeight = Math.floor(maxHeight / 8) * 8;
+
+      // Make sure dimensions are not below 512px
+      if (maxWidth < 512) maxWidth = 512;
+      if (maxHeight < 512) maxHeight = 512;
+
+      // Set the new dimensions
+      settings.width = maxWidth;
+      settings.height = maxHeight;
+    };
+
+    const isAspectRatioActive = (width, height) => {
+      // Check if current dimensions match this aspect ratio (with small rounding error tolerance)
+      const currentRatio = settings.width / settings.height;
+      const targetRatio = width / height;
+      return Math.abs(currentRatio - targetRatio) < 0.01;
+    };
+
     return {
       prompt,
       promptMaxLength,
@@ -551,7 +599,9 @@ export default defineComponent({
       isAuthenticated,
       userDisplayName,
       logout,
-      retryPrompt
+      retryPrompt,
+      setAspectRatio,
+      isAspectRatioActive
     }
   }
 })
@@ -575,6 +625,7 @@ export default defineComponent({
   margin: 0 auto;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .navbar {
@@ -790,8 +841,9 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   position: relative;
-  height: 700px;
-  overflow-y: visible;
+  min-height: 700px;
+  overflow-y: auto;
+  margin-bottom: 20px;
 }
 
 .control-panel::before {
@@ -1029,6 +1081,36 @@ select {
   background-color: rgba(50, 50, 50, 0.9);
 }
 
+/* Aspect Ratio Presets Styles */
+.aspect-ratio-presets {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.aspect-preset {
+  padding: 0.4rem 0.75rem;
+  background-color: rgba(30, 30, 30, 0.7);
+  border: 1px solid rgba(60, 60, 60, 0.5);
+  border-radius: 4px;
+  color: #f0f0f0;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.aspect-preset:hover {
+  background-color: rgba(40, 40, 40, 0.9);
+  border-color: rgba(0, 150, 255, 0.5);
+}
+
+.aspect-preset.active {
+  background-color: rgba(0, 100, 255, 0.3);
+  border-color: rgba(0, 150, 255, 0.9);
+  box-shadow: 0 0 5px rgba(0, 150, 255, 0.5);
+}
+
 .checkbox-group {
   display: flex;
   align-items: center;
@@ -1054,20 +1136,20 @@ select {
   color: rgba(200, 200, 200, 0.8);
 }
 
-/* Generate Button Container */
-.panel-buttons-container {
-  display: flex;
+/* Generate Button Styles */
+.generate-button-wrapper {
   width: 100%;
+  max-width: 1400px;
+  margin: 0 auto 2rem;
   padding: 0 1rem;
-}
-
-.generate-button-container {
-  width: 30%;
-  margin-top: 12px;
+  position: relative;
+  z-index: 1;
 }
 
 .generate-button {
   width: 100%;
+  max-width: 410px;
+  display: block;
   padding: 1rem;
   background: #1a75ff;
   color: white;
@@ -1485,10 +1567,6 @@ select {
 
   .control-panel, .preview-panel {
     height: auto;
-    width: 100%;
-  }
-
-  .generate-button-container {
     width: 100%;
   }
 
