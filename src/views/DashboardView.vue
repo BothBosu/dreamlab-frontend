@@ -211,7 +211,7 @@ export default defineComponent({
 
 <style scoped>
 .image-gallery {
-  margin-top: 2rem;
+  margin-top: 0.5rem;
 }
 
 .gallery-grid {
@@ -278,8 +278,12 @@ export default defineComponent({
   margin-top: 0.5rem;
   font-size: 0.9rem;
   color: rgba(200, 200, 200, 0.85);
-  word-wrap: break-word;
   text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  padding: 0 0.25rem;
 }
 
 /* Delete Confirmation Modal */
@@ -359,25 +363,40 @@ export default defineComponent({
     linear-gradient(45deg, rgba(0, 0, 255, 0.1) 0%, rgba(0, 0, 0, 0.1) 100%);
   color: #f0f0f0;
   font-family: 'Rajdhani', 'Roboto', sans-serif;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .dashboard-content {
-  padding: 2rem;
+  padding: 0.5rem;
   text-align: center;
-  padding-top: 80px; /* Space for the fixed navbar */
+  padding-top: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.dashboard-content {
+  padding: 0.5rem;
+  text-align: center;
+  padding-top: 40px;
   max-width: 1200px;
   margin: 0 auto;
 }
 
 .neon-header {
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
+  margin-top: -5px;
   text-align: center;
 }
 
 .neon-header h1 {
   font-size: 2.5rem;
   letter-spacing: 5px;
-  margin-bottom: 0.5rem;
+  margin-top: 0;
+  margin-bottom: 0.25rem;
+  line-height: 1;
   color: rgba(240, 240, 240, 0.9);
   text-shadow:
     0 0 5px rgba(255, 255, 255, 0.3),
@@ -648,7 +667,7 @@ export default defineComponent({
   }
 
   .dashboard-content {
-    padding: 80px 1rem 2rem;
+    padding: 60px 1rem 2rem;
   }
 
   .dashboard-placeholder {
