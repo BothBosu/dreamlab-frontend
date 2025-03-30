@@ -58,6 +58,9 @@
           <div v-for="image in images" :key="image.id" class="gallery-item">
             <img :src="image.url" :alt="image.inputPrompt" />
             <p class="image-caption">{{ image.inputPrompt }}</p>
+            <button @click="toggleShare(image)" class="share-btn">
+              {{ image.public ? "Unshare" : "Share" }}
+            </button>
           </div>
         </div>
       </div>
@@ -82,7 +85,7 @@ export default defineComponent({
     const isAuthenticated = computed(() => authStore.isAuthenticated);
     const userDisplayName = computed(() => authStore.user?.username || 'User');
 
-    const images = ref<Array<{ id: number; url: string; inputPrompt: string }>>([]);
+    const images = ref<Array<{ id: number; url: string; inputPrompt: string; public: boolean}>>([]);
 
     const fetchUserImages = async () => {
       try {
@@ -92,6 +95,20 @@ export default defineComponent({
         images.value = response.data;
       } catch (error) {
         console.error('Failed to fetch user images:', error);
+      }
+    };
+
+    const toggleShare = async (image: { id: number; url: string; inputPrompt: string; public: boolean }) => {
+      try {
+        const newSharedStatus = !image.public;
+        await axios.patch(
+          `http://localhost:8080/api/images/${image.id}/share?isPublic=${newSharedStatus}`,
+          {}, // Empty request body
+          { withCredentials: true }
+        );
+        image.public = newSharedStatus;
+      } catch (error) {
+        console.error("Failed to update share status:", error);
       }
     };
 
@@ -114,7 +131,8 @@ export default defineComponent({
       mobileMenuOpen,
       toggleMobileMenu,
       logout,
-      images
+      images,
+      toggleShare
     };
   }
 });
@@ -149,6 +167,21 @@ export default defineComponent({
   width: 100%;
   height: auto;
   border-radius: 4px;
+}
+
+.share-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: background 0.3s;
+}
+
+.share-btn:hover {
+  background-color: #0056b3;
 }
 
 .image-caption {
