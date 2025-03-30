@@ -56,11 +56,21 @@
 
         <div v-else class="gallery-grid">
           <div v-for="image in images" :key="image.id" class="gallery-item">
-            <img :src="image.url" :alt="image.inputPrompt" />
-            <p class="image-caption">{{ image.inputPrompt }}</p>
+            <div class="image-container" @click="openImageModal(image)">
+              <img :src="image.url" :alt="image.inputPrompt" />
+              <!-- Like button in corner -->
+              <div class="like-button">
+                <span class="heart-icon">❤️</span>
+                <span class="like-count">{{ image.likes || 0 }}</span>
+              </div>
+              <div class="image-overlay">
+                <span>Open</span>
+              </div>
+            </div>
+            <p class="image-caption">"{{ image.inputPrompt }}"</p>
             <div class="image-actions">
               <button @click="toggleShare(image)" class="share-btn">
-                {{ image.public ? "Unshare" : "Share" }}
+                {{ image.public ? "Unpublish" : "Publish" }}
               </button>
               <button @click="confirmDelete(image)" class="delete-btn">
                 Delete
@@ -79,6 +89,33 @@
         <div class="modal-actions">
           <button @click="deleteImage" class="confirm-delete-btn">Delete</button>
           <button @click="cancelDelete" class="cancel-delete-btn">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Full Image Modal -->
+    <div class="full-image-modal-overlay" v-if="showImageModal" @click="closeImageModal">
+      <div class="full-image-modal" @click.stop>
+        <button class="close-modal-btn" @click="closeImageModal">×</button>
+        <div class="full-image-container">
+          <img :src="selectedImage.url" :alt="selectedImage.inputPrompt" class="modal-image" />
+        </div>
+        <div class="full-image-info">
+          <div class="title-with-actions">
+            <h3>"{{ selectedImage.inputPrompt }}"</h3>
+            <div class="modal-actions">
+              <div class="like-count-display">
+                <span class="heart-icon">❤️</span>
+                <span class="like-count">{{ selectedImage.likes || 0 }}</span>
+              </div>
+              <button @click="toggleShare(selectedImage)" class="modal-share-btn">
+                {{ selectedImage.public ? "Unpublish" : "Publish" }}
+              </button>
+              <button @click="confirmDeleteFromModal" class="modal-delete-btn">
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -101,9 +138,19 @@ export default defineComponent({
     const isAuthenticated = computed(() => authStore.isAuthenticated);
     const userDisplayName = computed(() => authStore.user?.username || 'User');
 
-    const images = ref<Array<{ id: number; url: string; inputPrompt: string; public: boolean}>>([]);
+    const images = ref<Array<{ id: number; url: string; inputPrompt: string; public: boolean; likes?: number }>>([]);
     const showDeleteModal = ref(false);
-    const imageToDelete = ref<{ id: number; url: string; inputPrompt: string; public: boolean} | null>(null);
+    const imageToDelete = ref<{ id: number; url: string; inputPrompt: string; public: boolean; likes?: number } | null>(null);
+
+    // For full image modal
+    const showImageModal = ref(false);
+    const selectedImage = ref<{ id: number; url: string; inputPrompt: string; public: boolean; likes?: number }>({
+      id: 0,
+      url: '',
+      inputPrompt: '',
+      public: false,
+      likes: 0
+    });
 
     const fetchUserImages = async () => {
       try {
@@ -112,7 +159,18 @@ export default defineComponent({
           const response = await axios.get('http://localhost:8080/api/images/user', {
             withCredentials: true,
           });
-          images.value = response.data;
+
+          // Fetch like counts for each image
+          const imagesWithLikes = await Promise.all(response.data.map(async (img: any) => {
+            try {
+              const likeResponse = await axios.get(`http://localhost:8080/api/likes/${img.id}/count`);
+              return { ...img, likes: likeResponse.data };
+            } catch (error) {
+              return { ...img, likes: 0 };
+            }
+          }));
+
+          images.value = imagesWithLikes;
         } else {
           // Clear images if not authenticated
           images.value = [];
@@ -123,7 +181,7 @@ export default defineComponent({
       }
     };
 
-    const toggleShare = async (image: { id: number; url: string; inputPrompt: string; public: boolean }) => {
+    const toggleShare = async (image: { id: number; url: string; inputPrompt: string; public: boolean; likes?: number }) => {
       try {
         const newSharedStatus = !image.public;
         await axios.patch(
@@ -131,14 +189,34 @@ export default defineComponent({
           {}, // Empty request body
           { withCredentials: true }
         );
+
+        // Update all instances of this image in our arrays
         image.public = newSharedStatus;
+
+        // If this is the selected image in the modal, update it there too
+        if (selectedImage.value && selectedImage.value.id === image.id) {
+          selectedImage.value.public = newSharedStatus;
+        }
+
+        // Also update the corresponding image in the images array
+        const thumbnailImage = images.value.find(img => img.id === image.id);
+        if (thumbnailImage) {
+          thumbnailImage.public = newSharedStatus;
+        }
+
       } catch (error) {
         console.error("Failed to update share status:", error);
       }
     };
 
-    const confirmDelete = (image: { id: number; url: string; inputPrompt: string; public: boolean }) => {
+    const confirmDelete = (image: { id: number; url: string; inputPrompt: string; public: boolean; likes?: number }) => {
       imageToDelete.value = image;
+      showDeleteModal.value = true;
+    };
+
+    const confirmDeleteFromModal = () => {
+      imageToDelete.value = selectedImage.value;
+      closeImageModal();
       showDeleteModal.value = true;
     };
 
@@ -161,6 +239,11 @@ export default defineComponent({
         // Close the modal
         showDeleteModal.value = false;
         imageToDelete.value = null;
+
+        // If the deleted image was being viewed in modal, close that too
+        if (showImageModal.value && selectedImage.value.id === imageToDelete.value.id) {
+          closeImageModal();
+        }
       } catch (error) {
         console.error("Failed to delete image:", error);
       }
@@ -175,6 +258,20 @@ export default defineComponent({
       // Clear the images when logging out
       images.value = [];
       router.push('/login');
+    };
+
+    // Functions for full image modal
+    const openImageModal = (image: { id: number; url: string; inputPrompt: string; public: boolean; likes?: number }) => {
+      selectedImage.value = { ...image };
+      showImageModal.value = true;
+      // Add body class to prevent scrolling
+      document.body.classList.add('modal-open');
+    };
+
+    const closeImageModal = () => {
+      showImageModal.value = false;
+      // Remove body class to restore scrolling
+      document.body.classList.remove('modal-open');
     };
 
     // Watch for authentication changes
@@ -203,7 +300,12 @@ export default defineComponent({
       cancelDelete,
       deleteImage,
       showDeleteModal,
-      imageToDelete
+      imageToDelete,
+      showImageModal,
+      selectedImage,
+      openImageModal,
+      closeImageModal,
+      confirmDeleteFromModal
     };
   }
 });
@@ -234,10 +336,71 @@ export default defineComponent({
   transform: scale(1.05);
 }
 
+.image-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
 .gallery-item img {
   width: 100%;
   height: auto;
   border-radius: 4px;
+  transition: transform 0.3s ease;
+}
+
+.gallery-item:hover img {
+  transform: scale(1.03);
+}
+
+/* Like button in corner */
+.like-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  border: none;
+  border-radius: 20px;
+  padding: 5px 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: all 0.3s;
+  backdrop-filter: blur(2px);
+  z-index: 2;
+}
+
+.heart-icon {
+  font-size: 1rem;
+}
+
+.like-count {
+  color: white;
+  font-size: 0.9rem;
+}
+
+/* Image Overlay */
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  color: white;
+  font-size: 0.9rem;
+  border-radius: 4px;
+}
+
+.image-container:hover .image-overlay {
+  opacity: 1;
 }
 
 .image-actions {
@@ -349,6 +512,153 @@ export default defineComponent({
 
 .cancel-delete-btn:hover {
   background-color: rgba(70, 70, 70, 1);
+}
+
+/* Full Image Modal */
+.full-image-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.full-image-modal {
+  background-color: rgba(20, 20, 20, 0.9);
+  border-radius: 8px;
+  max-width: 90%;
+  max-height: 90vh;
+  width: auto;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+  animation: modalFadeIn 0.3s ease-out;
+}
+
+.close-modal-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  color: white;
+  font-size: 24px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  z-index: 10;
+}
+
+.close-modal-btn:hover {
+  background: rgba(50, 50, 50, 0.8);
+  transform: scale(1.1);
+}
+
+.full-image-container {
+  overflow: auto;
+  max-height: 75vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.full-image-container img {
+  max-width: 100%;
+  max-height: 75vh;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.full-image-info {
+  padding: 15px 20px;
+  border-top: 1px solid rgba(50, 50, 50, 0.5);
+  background-color: rgba(15, 15, 15, 0.9);
+}
+
+.title-with-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.full-image-info h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: rgba(240, 240, 240, 0.9);
+  max-width: 70%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Like display in modal */
+.like-count-display {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0.5rem 0.75rem;
+  background-color: rgba(40, 40, 40, 0.3);  /* More transparent */
+  border-radius: 20px;
+  margin-right: 0.5rem;
+}
+
+.modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.modal-share-btn, .modal-delete-btn {
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  border: none;
+  transition: all 0.3s;
+}
+
+.modal-share-btn {
+  background-color: #007bff;
+  color: white;
+}
+
+.modal-share-btn:hover {
+  background-color: #0056b3;
+}
+
+.modal-delete-btn {
+  background-color: rgba(255, 50, 50, 0.8);
+  color: white;
+}
+
+.modal-delete-btn:hover {
+  background-color: rgba(255, 30, 30, 1);
+}
+
+/* Animation */
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .dashboard-container {
@@ -634,6 +944,11 @@ export default defineComponent({
   background-color: rgba(255, 100, 100, 0.1);
 }
 
+/* Add this to prevent body scrolling when modal is open */
+:global(body.modal-open) {
+  overflow: hidden;
+}
+
 @media (max-width: 768px) {
   .navbar-links, .navbar-user-manage {
     display: none;
@@ -657,6 +972,29 @@ export default defineComponent({
 
   .image-actions {
     flex-direction: column;
+  }
+
+  .full-image-container {
+    max-height: 65vh;
+  }
+
+  .full-image-container img {
+    max-height: 65vh;
+  }
+
+  .title-with-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .title-with-actions h3 {
+    max-width: 100%;
+  }
+
+  .modal-actions {
+    display: flex;
+    width: 100%;
   }
 }
 
