@@ -404,8 +404,7 @@ h1 {
 }
 
 .full-image-container {
-  overflow: auto;
-  max-height: 75vh;
+  max-height: 120vh;
   display: flex;
   justify-content: center;
   align-items: center;
