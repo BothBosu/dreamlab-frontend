@@ -176,6 +176,18 @@
 
           <div class="image-actions">
             <button
+              class="action-button retry-button"
+              title="Retry prompt"
+              @click="retryPrompt"
+              :disabled="!prompt.trim() || isGenerating"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+              </svg>
+              <span>Retry</span>
+            </button>
+
+            <button
               class="action-button download-button"
               title="Download image"
               @click="downloadImage"
@@ -507,6 +519,12 @@ export default defineComponent({
       }
     }
 
+    const retryPrompt = () => {
+      if (prompt.value.trim()) {
+        generateImage();
+      }
+    }
+
     return {
       prompt,
       promptMaxLength,
@@ -532,7 +550,8 @@ export default defineComponent({
       copyShareLink,
       isAuthenticated,
       userDisplayName,
-      logout
+      logout,
+      retryPrompt
     }
   }
 })
@@ -1140,6 +1159,16 @@ select {
   justify-content: center;
   align-items: center;
   z-index: 10;
+}
+
+.retry-button {
+  background-color: #2c7a7b;
+  color: white;
+  border: none;
+}
+
+.retry-button:hover {
+  background-color: #38a3a5;
 }
 
 .generation-status {
