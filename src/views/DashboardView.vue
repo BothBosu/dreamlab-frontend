@@ -456,6 +456,7 @@ export default defineComponent({
   left: 0;
   right: 0;
   bottom: 0;
+  text-align: center;
   background-color: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
