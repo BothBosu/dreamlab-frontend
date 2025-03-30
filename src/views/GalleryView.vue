@@ -178,11 +178,20 @@ export default defineComponent({
           withCredentials: true
         });
         const res = await axios.get(`http://localhost:8080/api/likes/${image.id}/count`);
+
+        // Update the like count for this image
         image.likes = res.data;
 
         // Update the selected image like count if it's the same image
         if (this.selectedImage.id === image.id) {
           this.selectedImage.likes = res.data;
+        }
+
+        // Also update the corresponding image in the images array
+        // This ensures thumbnail updates when like button is clicked in modal
+        const thumbnailImage = this.images.find(img => img.id === image.id);
+        if (thumbnailImage) {
+          thumbnailImage.likes = res.data;
         }
       } catch (error) {
         this.errorTitle = 'Operation Failed';
@@ -271,7 +280,7 @@ export default defineComponent({
   position: absolute;
   top: 10px;
   right: 10px;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.3);
   border: none;
   border-radius: 20px;
   padding: 5px 10px;
