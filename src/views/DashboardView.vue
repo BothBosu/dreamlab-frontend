@@ -86,7 +86,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, onMounted } from 'vue';
+import { defineComponent, ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import axios from 'axios';
@@ -107,12 +107,19 @@ export default defineComponent({
 
     const fetchUserImages = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/api/images/user', {
-          withCredentials: true,
-        });
-        images.value = response.data;
+        // Only fetch images if user is authenticated
+        if (authStore.isAuthenticated) {
+          const response = await axios.get('http://localhost:8080/api/images/user', {
+            withCredentials: true,
+          });
+          images.value = response.data;
+        } else {
+          // Clear images if not authenticated
+          images.value = [];
+        }
       } catch (error) {
         console.error('Failed to fetch user images:', error);
+        images.value = []; // Clear images on error
       }
     };
 
@@ -165,8 +172,20 @@ export default defineComponent({
 
     const logout = async () => {
       await authStore.logout();
+      // Clear the images when logging out
+      images.value = [];
       router.push('/login');
     };
+
+    // Watch for authentication changes
+    watch(() => authStore.isAuthenticated, (isAuthenticated) => {
+      if (isAuthenticated) {
+        fetchUserImages();
+      } else {
+        // Clear images when user logs out
+        images.value = [];
+      }
+    });
 
     onMounted(() => {
       fetchUserImages();
