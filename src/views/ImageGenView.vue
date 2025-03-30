@@ -48,6 +48,21 @@
         <div class="control-panel">
           <div class="panel-section">
             <h2>Prompt</h2>
+
+            <div class="style-presets">
+              <h3>Style Presets</h3>
+              <div class="style-buttons">
+                <button @click="applyStyle('digital art')" class="style-btn">Digital Art</button>
+                <button @click="applyStyle('oil painting')" class="style-btn">Oil Painting</button>
+                <button @click="applyStyle('watercolor')" class="style-btn">Watercolor</button>
+                <button @click="applyStyle('photorealistic')" class="style-btn">Photorealistic</button>
+                <button @click="applyStyle('anime')" class="style-btn">Anime</button>
+                <button @click="applyStyle('sketch')" class="style-btn">Sketch</button>
+                <button @click="applyStyle('3D render')" class="style-btn">3D Render</button>
+                <button @click="applyStyle('pixel art')" class="style-btn">Pixel Art</button>
+              </div>
+            </div>
+
             <div class="prompt-container">
               <textarea
                 v-model="prompt"
@@ -372,6 +387,27 @@ export default defineComponent({
       mobileMenuOpen.value = !mobileMenuOpen.value
     }
 
+    const applyStyle = (style) => {
+      // Don't add if the style is already in the prompt
+      if (prompt.value.toLowerCase().includes(style.toLowerCase())) {
+        return;
+      }
+
+      // Add the style to the prompt
+      const currentPrompt = prompt.value.trim();
+
+      if (currentPrompt === '') {
+        prompt.value = style;
+      } else if (currentPrompt.endsWith(',') || currentPrompt.endsWith('.')) {
+        prompt.value = `${currentPrompt} ${style}`;
+      } else {
+        prompt.value = `${currentPrompt}, ${style}`;
+      }
+
+      // Update character count
+      updateCharCount();
+    }
+
     const generateImage = async () => {
       if (!prompt.value.trim()) {
         alert('Please enter a prompt before generating an image.')
@@ -574,6 +610,7 @@ export default defineComponent({
     };
 
     return {
+      applyStyle,
       prompt,
       promptMaxLength,
       charCount,
@@ -1515,6 +1552,42 @@ select {
 
 .copy-link-btn:hover {
   background-color: #6f48e3;
+}
+
+.style-presets {
+  margin-bottom: 1rem;
+}
+
+.style-presets h3 {
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+  color: rgba(200, 200, 255, 0.9);
+  letter-spacing: 0.5px;
+}
+
+.style-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.style-btn {
+  padding: 0.5rem 0.75rem;
+  background: linear-gradient(45deg, rgba(15, 15, 15, 0.7), rgba(25, 25, 25, 0.7));
+  border: 1px solid rgba(60, 60, 60, 0.5);
+  border-radius: 4px;
+  color: #f0f0f0;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.style-btn:hover {
+  background: linear-gradient(45deg, rgba(0, 70, 255, 0.2), rgba(0, 150, 255, 0.2));
+  border-color: rgba(0, 150, 255, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 @keyframes rgbBorder {
