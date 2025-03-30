@@ -58,13 +58,29 @@
           <div v-for="image in images" :key="image.id" class="gallery-item">
             <img :src="image.url" :alt="image.inputPrompt" />
             <p class="image-caption">{{ image.inputPrompt }}</p>
-            <button @click="toggleShare(image)" class="share-btn">
-              {{ image.public ? "Unshare" : "Share" }}
-            </button>
+            <div class="image-actions">
+              <button @click="toggleShare(image)" class="share-btn">
+                {{ image.public ? "Unshare" : "Share" }}
+              </button>
+              <button @click="confirmDelete(image)" class="delete-btn">
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       </div>
+    </div>
 
+    <!-- Delete Confirmation Modal -->
+    <div v-if="showDeleteModal" class="delete-modal-overlay">
+      <div class="delete-modal">
+        <h3>Confirm Delete</h3>
+        <p>Are you sure you want to delete this image? This action cannot be undone.</p>
+        <div class="modal-actions">
+          <button @click="deleteImage" class="confirm-delete-btn">Delete</button>
+          <button @click="cancelDelete" class="cancel-delete-btn">Cancel</button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -86,11 +102,13 @@ export default defineComponent({
     const userDisplayName = computed(() => authStore.user?.username || 'User');
 
     const images = ref<Array<{ id: number; url: string; inputPrompt: string; public: boolean}>>([]);
+    const showDeleteModal = ref(false);
+    const imageToDelete = ref<{ id: number; url: string; inputPrompt: string; public: boolean} | null>(null);
 
     const fetchUserImages = async () => {
       try {
         const response = await axios.get('http://localhost:8080/api/images/user', {
-          withCredentials: true, // if you're using session-based login
+          withCredentials: true,
         });
         images.value = response.data;
       } catch (error) {
@@ -109,6 +127,35 @@ export default defineComponent({
         image.public = newSharedStatus;
       } catch (error) {
         console.error("Failed to update share status:", error);
+      }
+    };
+
+    const confirmDelete = (image: { id: number; url: string; inputPrompt: string; public: boolean }) => {
+      imageToDelete.value = image;
+      showDeleteModal.value = true;
+    };
+
+    const cancelDelete = () => {
+      imageToDelete.value = null;
+      showDeleteModal.value = false;
+    };
+
+    const deleteImage = async () => {
+      if (!imageToDelete.value) return;
+
+      try {
+        await axios.delete(`http://localhost:8080/api/images/${imageToDelete.value.id}`, {
+          withCredentials: true
+        });
+
+        // Remove the image from the local array
+        images.value = images.value.filter(img => img.id !== imageToDelete.value!.id);
+
+        // Close the modal
+        showDeleteModal.value = false;
+        imageToDelete.value = null;
+      } catch (error) {
+        console.error("Failed to delete image:", error);
       }
     };
 
@@ -132,7 +179,12 @@ export default defineComponent({
       toggleMobileMenu,
       logout,
       images,
-      toggleShare
+      toggleShare,
+      confirmDelete,
+      cancelDelete,
+      deleteImage,
+      showDeleteModal,
+      imageToDelete
     };
   }
 });
@@ -169,19 +221,38 @@ export default defineComponent({
   border-radius: 4px;
 }
 
+.image-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.share-btn, .delete-btn {
+  flex: 1;
+  border: none;
+  padding: 0.5rem 0.25rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 0.3s;
+}
+
 .share-btn {
   background-color: #007bff;
   color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-top: 0.5rem;
-  transition: background 0.3s;
 }
 
 .share-btn:hover {
   background-color: #0056b3;
+}
+
+.delete-btn {
+  background-color: rgba(255, 50, 50, 0.8);
+  color: white;
+}
+
+.delete-btn:hover {
+  background-color: rgba(255, 30, 30, 1);
 }
 
 .image-caption {
@@ -190,6 +261,75 @@ export default defineComponent({
   color: rgba(200, 200, 200, 0.85);
   word-wrap: break-word;
   text-align: center;
+}
+
+/* Delete Confirmation Modal */
+.delete-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 200;
+  backdrop-filter: blur(5px);
+}
+
+.delete-modal {
+  background-color: rgba(25, 25, 25, 0.95);
+  border: 1px solid rgba(70, 70, 70, 0.5);
+  border-radius: 8px;
+  padding: 1.5rem;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.delete-modal h3 {
+  color: rgba(255, 60, 60, 0.9);
+  margin-top: 0;
+  font-size: 1.2rem;
+}
+
+.delete-modal p {
+  color: rgba(220, 220, 220, 0.9);
+  margin-bottom: 1.5rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.confirm-delete-btn, .cancel-delete-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: none;
+  transition: all 0.3s;
+}
+
+.confirm-delete-btn {
+  background-color: rgba(255, 50, 50, 0.8);
+  color: white;
+}
+
+.confirm-delete-btn:hover {
+  background-color: rgba(255, 20, 20, 1);
+}
+
+.cancel-delete-btn {
+  background-color: rgba(50, 50, 50, 0.8);
+  color: white;
+}
+
+.cancel-delete-btn:hover {
+  background-color: rgba(70, 70, 70, 1);
 }
 
 .dashboard-container {
@@ -494,6 +634,10 @@ export default defineComponent({
 
   .dashboard-placeholder {
     padding: 1.5rem;
+  }
+
+  .image-actions {
+    flex-direction: column;
   }
 }
 
