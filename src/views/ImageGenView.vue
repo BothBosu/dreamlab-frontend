@@ -241,6 +241,19 @@
               <span>{{ isAuthenticated ? 'Save' : 'Login to Save' }}</span>
             </button>
             <button
+              class="action-button publish-button"
+              title="Save and publish to gallery"
+              @click="saveAndPublish"
+              :disabled="!generatedImage || !isAuthenticated"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line>
+              </svg>
+              <span>{{ isAuthenticated ? 'Save & Publish' : 'Login to Publish' }}</span>
+            </button>
+            <button
               class="action-button share-button"
               title="Share image"
               @click="openShareModal"
@@ -539,6 +552,52 @@ export default defineComponent({
       }
     }
 
+    const saveAndPublish = async () => {
+      if (!generatedImage.value) return;
+
+      // Check authentication
+      if (!isAuthenticated.value) {
+        alert('You must be logged in to save images.');
+        return;
+      }
+
+      try {
+        const saveResponse = await axios.post('/api/images/save', {
+          imageUrl: generatedImage.value,
+          inputPrompt: prompt.value
+        }, {
+          withCredentials: true
+        });
+
+        if (saveResponse.data && saveResponse.data.success && saveResponse.data.imageId) {
+          // Then patch it to make it public
+          const imageId = saveResponse.data.imageId;
+          await axios.patch(
+            `http://localhost:8080/api/images/${imageId}/share?isPublic=true`,
+            {},
+            { withCredentials: true }
+          );
+          alert('Image saved and published successfully!');
+        } else {
+          alert('Failed to save and publish image. Please try again.');
+        }
+      } catch (error: any) {
+        if (error.response && error.response.status === 400) {
+          const message = error.response.data.message || error.response.data || 'Unknown error';
+
+          if (message.includes("User not found")) {
+            alert("You must be logged in to save images.");
+          } else {
+            alert("Error: " + message);
+          }
+        } else if (error.response && error.response.status === 403) {
+          alert("You must be logged in to save images.");
+        } else {
+          alert("Something went wrong. Please try again later.");
+        }
+      }
+    }
+
     const openShareModal = () => {
       if (!generatedImage.value) return
       shareModalOpen.value = true
@@ -638,7 +697,8 @@ export default defineComponent({
       logout,
       retryPrompt,
       setAspectRatio,
-      isAspectRatioActive
+      isAspectRatioActive,
+      saveAndPublish
     }
   }
 })
@@ -1363,6 +1423,16 @@ select {
 
 .save-button:hover {
   background-color: #0a96c2;
+}
+
+.publish-button {
+  background-color: #b96734;
+  color: white;
+  border: none;
+}
+
+.publish-button:hover {
+  background-color: #c0794d;
 }
 
 .share-button {
