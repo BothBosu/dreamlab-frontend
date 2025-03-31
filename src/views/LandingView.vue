@@ -8,8 +8,8 @@
         </router-link>
       </div>
       <div class="navbar-links">
-        <router-link to="/imagegen" class="nav-link">Generate</router-link>
         <router-link to="/gallery" class="nav-link">Gallery</router-link>
+        <router-link to="/imagegen" class="nav-link">Generate</router-link>
         <router-link to="/dashboard" class="nav-link">Dashboard</router-link>
       </div>
       <div class="navbar-user-manage">
@@ -108,7 +108,7 @@
             <div class="icon-placeholder">❤️</div>
           </div>
           <h3>Like Favorites</h3>
-          <p>Show appreciation for images that inspire you with likes and saves</p>
+          <p>Show appreciation for images that inspire you with likes</p>
         </div>
 
         <div class="feature-card">
@@ -172,9 +172,6 @@
         <div class="footer-links">
           <router-link to="/login">Login</router-link>
           <router-link to="/register">Register</router-link>
-          <a href="#">About</a>
-          <a href="#">Terms</a>
-          <a href="#">Privacy</a>
         </div>
       </div>
       <div class="copyright">© 2025 Dream Lab. All rights reserved.</div>
@@ -245,20 +242,22 @@ export default defineComponent({
           }
         }));
 
-        // Use different subsets for sample and gallery sections
         if (processedImages.length > 0) {
-          // For sample images in hero section, use up to 3 images
-          sampleImages.value = processedImages.slice(0, 3);
+          // For sample images in hero section, use the newest images
+          // Assuming the API returns images with oldest first, so we reverse the array
+          const newestImages = [...processedImages].reverse();
+          sampleImages.value = newestImages.slice(0, 3);
 
-          // For gallery preview, use the next 4 different images
-          galleryImages.value = processedImages.slice(3, 7);
+          // For gallery preview, sort by likes in descending order
+          const sortedByLikes = [...processedImages].sort((a, b) => b.likes - a.likes);
+          galleryImages.value = sortedByLikes.slice(0, 4);
 
           // If we don't have enough images, reuse some
           if (galleryImages.value.length < 4) {
             const remaining = 4 - galleryImages.value.length;
             galleryImages.value = [
               ...galleryImages.value,
-              ...processedImages.slice(0, remaining)
+              ...sortedByLikes.slice(0, remaining)
             ];
           }
         } else {

@@ -231,7 +231,7 @@
               class="action-button save-button"
               title="Save to account"
               @click="saveImage"
-              :disabled="!generatedImage || !isAuthenticated"
+              :disabled="!generatedImage || !isAuthenticated || isSaveDisabled"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
@@ -244,7 +244,7 @@
               class="action-button publish-button"
               title="Save and publish to gallery"
               @click="saveAndPublish"
-              :disabled="!generatedImage || !isAuthenticated"
+              :disabled="!generatedImage || !isAuthenticated || isSaveDisabled"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
@@ -337,6 +337,15 @@
         </div>
       </div>
     </div>
+
+    <!-- Success Modal for "Image saved successfully!" -->
+    <SuccessModal
+      :show="showSuccessModal"
+      title="Success"
+      :message="modalMessage"
+      buttonText="OK"
+      @close="showSuccessModal = false"
+    />
   </div>
 </template>
 
@@ -345,9 +354,11 @@ import { defineComponent, reactive, ref, computed } from 'vue'
 import axios from 'axios'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import SuccessModal from '@/components/SuccessModal.vue'
 
 export default defineComponent({
   name: 'ImageGenView',
+  components: { SuccessModal },
   setup() {
     const prompt = ref('')
     const promptMaxLength = 200
@@ -363,6 +374,7 @@ export default defineComponent({
     const route = useRoute()
     const router = useRouter()
     const authStore = useAuthStore()
+    const isSaveDisabled = ref(false);
 
     // Auth computed properties
     const isAuthenticated = computed(() => authStore.isAuthenticated)
@@ -376,6 +388,9 @@ export default defineComponent({
 
     const shareModalOpen = ref(false)
     const shareLink = ref('https://getimg.ai/img/img-MTXWp2lPrHZI')
+
+    const modalMessage = ref('Image saved successfully!');
+    const showSuccessModal = ref(false);
 
     const settings = reactive({
       width: 1024,
@@ -516,12 +531,15 @@ export default defineComponent({
       }
     }
 
-    // Save image to S3 function (from original implementation)
+    // Save image to S3 function
     const saveImage = async () => {
-      if (!generatedImage.value) return
+      if (isSaveDisabled.value) return; // Already clicked
+      isSaveDisabled.value = true;
 
-      // Check if user is authenticated before allowing image save
+      if (!generatedImage.value) return;
+
       if (!isAuthenticated.value) {
+        isSaveDisabled.value = false;
         alert('You must be logged in to save images.');
         return;
       }
@@ -529,16 +547,17 @@ export default defineComponent({
       try {
         const response = await axios.post('/api/images/save', {
           imageUrl: generatedImage.value,
-          inputPrompt: prompt.value // Use part of the prompt as the name
-        }, {
-          withCredentials: true // Ensure cookies are sent with the request
-        });
+          inputPrompt: prompt.value
+        }, { withCredentials: true });
 
-        alert('Image saved successfully!');
+        // Set a specific message for saving only
+        modalMessage.value = 'Image saved successfully!';
+        showSuccessModal.value = true;
       } catch (error: any) {
+        isSaveDisabled.value = false; // Allow retry if error occurs
+        // Handle error messages here as before...
         if (error.response && error.response.status === 400) {
           const message = error.response.data.message || error.response.data || 'Unknown error';
-
           if (message.includes("User not found")) {
             alert("You must be logged in to save images.");
           } else {
@@ -552,11 +571,14 @@ export default defineComponent({
       }
     }
 
-    const saveAndPublish = async () => {
-      if (!generatedImage.value) return;
 
-      // Check authentication
+    const saveAndPublish = async () => {
+      if (isSaveDisabled.value) return; // Already clicked
+      isSaveDisabled.value = true;
+
+      if (!generatedImage.value) return;
       if (!isAuthenticated.value) {
+        isSaveDisabled.value = false;
         alert('You must be logged in to save images.');
         return;
       }
@@ -565,26 +587,26 @@ export default defineComponent({
         const saveResponse = await axios.post('/api/images/save', {
           imageUrl: generatedImage.value,
           inputPrompt: prompt.value
-        }, {
-          withCredentials: true
-        });
+        }, { withCredentials: true });
 
         if (saveResponse.data && saveResponse.data.success && saveResponse.data.imageId) {
-          // Then patch it to make it public
           const imageId = saveResponse.data.imageId;
           await axios.patch(
             `http://localhost:8080/api/images/${imageId}/share?isPublic=true`,
             {},
             { withCredentials: true }
           );
-          alert('Image saved and published successfully!');
+          // Set a specific message for saving and publishing
+          modalMessage.value = 'Image saved and published successfully!';
+          showSuccessModal.value = true;
         } else {
+          isSaveDisabled.value = false; // Re-enable if save not successful
           alert('Failed to save and publish image. Please try again.');
         }
       } catch (error: any) {
+        isSaveDisabled.value = false; // Re-enable on error
         if (error.response && error.response.status === 400) {
           const message = error.response.data.message || error.response.data || 'Unknown error';
-
           if (message.includes("User not found")) {
             alert("You must be logged in to save images.");
           } else {
@@ -597,6 +619,7 @@ export default defineComponent({
         }
       }
     }
+
 
     const openShareModal = () => {
       if (!generatedImage.value) return
@@ -632,37 +655,25 @@ export default defineComponent({
 
     // Aspect ratio functions
     const setAspectRatio = (width, height) => {
-      // Calculate new dimensions while maintaining ratio and constraints
-      // We need to find the largest dimensions that:
-      // 1. Maintain the requested aspect ratio
-      // 2. Stay within the 512-1024px constraints
-      // 3. Are divisible by 8 (as per the existing slider steps)
-
-      // Find the maximum possible dimensions for this ratio
       let maxWidth = 1024;
       let maxHeight = Math.round((height / width) * maxWidth);
 
-      // Ensure height is within bounds
       if (maxHeight > 1024) {
         maxHeight = 1024;
         maxWidth = Math.round((width / height) * maxHeight);
       }
 
-      // Ensure dimensions are divisible by 8
       maxWidth = Math.floor(maxWidth / 8) * 8;
       maxHeight = Math.floor(maxHeight / 8) * 8;
 
-      // Make sure dimensions are not below 512px
       if (maxWidth < 512) maxWidth = 512;
       if (maxHeight < 512) maxHeight = 512;
 
-      // Set the new dimensions
       settings.width = maxWidth;
       settings.height = maxHeight;
     };
 
     const isAspectRatioActive = (width, height) => {
-      // Check if current dimensions match this aspect ratio (with small rounding error tolerance)
       const currentRatio = settings.width / settings.height;
       const targetRatio = width / height;
       return Math.abs(currentRatio - targetRatio) < 0.01;
@@ -698,11 +709,15 @@ export default defineComponent({
       retryPrompt,
       setAspectRatio,
       isAspectRatioActive,
-      saveAndPublish
+      saveAndPublish,
+      isSaveDisabled,
+      modalMessage,
+      showSuccessModal,
     }
   }
 })
 </script>
+
 
 <style scoped>
 .imagegen-container {
@@ -757,6 +772,10 @@ export default defineComponent({
 .navbar-logo {
   display: flex;
   align-items: center;
+}
+
+.logo-link {
+  text-decoration: none;
 }
 
 .logo-text {
@@ -1445,9 +1464,11 @@ select {
   background-color: #6f48e3;
 }
 
-.action-button:disabled {
+.action-button:disabled,
+.action-button[disabled] {
   opacity: 0.5;
   cursor: not-allowed;
+  pointer-events: none; /* Prevents any click events */
 }
 
 .action-button svg {
