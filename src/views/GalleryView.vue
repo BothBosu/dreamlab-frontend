@@ -248,6 +248,26 @@ export default defineComponent({
   padding: 1rem;
   transition: all 0.3s;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+  width: 220px; /* Fixed width to ensure consistency */
+}
+
+.gallery-item img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin-bottom: 0.5rem;
+  border-radius: 4px;
+  transition: transform 0.3s ease;
+}
+
+.gallery-item p {
+  color: rgba(200, 200, 200, 0.9);
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap; /* Prevents text from wrapping to new line */
+  max-width: 100%; /* Ensures text doesn't overflow container */
 }
 
 .gallery-item:hover {
@@ -256,24 +276,15 @@ export default defineComponent({
   border-color: rgba(0, 150, 255, 0.3);
 }
 
+.gallery-item:hover img {
+  transform: scale(1.03);
+}
+
 .image-container {
   position: relative;
   overflow: hidden;
   border-radius: 4px;
   cursor: pointer;
-}
-
-.gallery-item img {
-  max-width: 200px;
-  height: auto;
-  display: block;
-  margin-bottom: 0.5rem;
-  border-radius: 4px;
-  transition: transform 0.3s ease;
-}
-
-.gallery-item:hover img {
-  transform: scale(1.03);
 }
 
 .like-button {
