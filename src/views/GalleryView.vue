@@ -285,6 +285,12 @@ export default defineComponent({
   overflow: hidden;
   border-radius: 4px;
   cursor: pointer;
+  height: 160px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(10, 10, 10, 0.8);
 }
 
 .like-button {
@@ -707,7 +713,12 @@ h1 {
   }
 
   .gallery-item img {
-    max-width: 150px;
+    max-width: 100%;
+    max-height: 160px;
+    display: block;
+    border-radius: 4px;
+    transition: transform 0.3s ease;
+    object-fit: contain;
   }
 
   .full-image-modal {

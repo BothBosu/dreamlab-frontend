@@ -341,6 +341,12 @@ export default defineComponent({
   overflow: hidden;
   border-radius: 4px;
   cursor: pointer;
+  height: 140px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(10, 10, 10, 0.8);
 }
 
 .gallery-item img {
