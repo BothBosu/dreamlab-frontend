@@ -14,7 +14,7 @@
       </div>
       <div class="navbar-user-manage">
         <template v-if="isAuthenticated">
-          <span class="username">{{ userDisplayName }}</span>
+          <router-link to="/profile" class="username">{{ userDisplayName }}</router-link>
           <button @click="logout" class="logout-btn">Logout</button>
         </template>
         <template v-else>
@@ -33,7 +33,7 @@
       <router-link to="/imagegen" class="mobile-nav-link" @click="toggleMobileMenu">Generate</router-link>
       <router-link to="/dashboard" class="mobile-nav-link" @click="toggleMobileMenu">Dashboard</router-link>
       <template v-if="isAuthenticated">
-        <span class="mobile-username">{{ userDisplayName }}</span>
+        <router-link to="/profile" class="mobile-username" @click="toggleMobileMenu">{{ userDisplayName }}</router-link>
         <button @click="logout" class="mobile-logout-btn">Logout</button>
       </template>
       <template v-else>
@@ -52,6 +52,22 @@
         <div class="error-icon">!</div>
         {{ errorMessage }}
       </div>
+
+      <!-- Profile Picture Selector -->
+      <div class="form-group profile-picture-section">
+        <label>PROFILE PICTURE</label>
+        <ProfilePictureSelector
+          v-model:value="profilePicture"
+          label="Choose your avatar"
+        />
+        <div class="preview-container">
+          <div class="preview-label">Preview:</div>
+          <div class="avatar-preview">
+            <img :src="getAvatarSrc(profilePicture)" alt="Selected Avatar" />
+          </div>
+        </div>
+      </div>
+
 
       <form @submit.prevent="handleRegister">
         <div class="form-group">
@@ -121,13 +137,18 @@
 import { defineComponent, ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
+import ProfilePictureSelector from '@/views/ProfilePictureSelector.vue';
 
 export default defineComponent({
   name: 'RegisterView',
+  components: {
+    ProfilePictureSelector
+  },
   setup() {
     const username = ref('');
     const password = ref('');
     const confirmPassword = ref('');
+    const profilePicture = ref('avatar1.png');
     const errorMessage = ref('');
     const isLoading = ref(false);
     const mobileMenuOpen = ref(false);
@@ -149,8 +170,13 @@ export default defineComponent({
     const isFormValid = computed(() => {
       return username.value.length >= 3 &&
         password.value.length >= 6 &&
-        password.value === confirmPassword.value;
+        password.value === confirmPassword.value &&
+        profilePicture.value !== '';
     });
+
+    const getAvatarSrc = (avatar: string) => {
+      return `/assets/avatars/${avatar}`;
+    };
 
     const handleRegister = async () => {
       if (!isFormValid.value) {
@@ -168,7 +194,11 @@ export default defineComponent({
       isLoading.value = true;
 
       try {
-        const result = await authStore.register(username.value, password.value);
+        const result = await authStore.register(
+          username.value,
+          password.value,
+          profilePicture.value
+        );
 
         if (result.success) {
           // Show success message and redirect to login
@@ -189,6 +219,7 @@ export default defineComponent({
       username,
       password,
       confirmPassword,
+      profilePicture,
       errorMessage,
       isLoading,
       isFormValid,
@@ -197,7 +228,8 @@ export default defineComponent({
       userDisplayName,
       mobileMenuOpen,
       toggleMobileMenu,
-      logout
+      logout,
+      getAvatarSrc
     };
   }
 });
@@ -454,6 +486,41 @@ button:hover:not(:disabled) {
   text-shadow: 0 0 5px rgba(0, 150, 255, 0.5);
 }
 
+/* Profile Picture Styles */
+.profile-picture-section {
+  margin-top: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.preview-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1rem;
+  flex-direction: column;
+}
+
+.preview-label {
+  font-size: 0.9rem;
+  color: rgba(200, 200, 200, 0.7);
+  margin-bottom: 0.5rem;
+}
+
+.avatar-preview {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid rgba(0, 150, 255, 0.5);
+  box-shadow: 0 0 10px rgba(0, 150, 255, 0.3);
+}
+
+.avatar-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 /* Navbar Styles */
 .navbar {
   display: flex;
@@ -563,6 +630,16 @@ button:hover:not(:disabled) {
   color: rgba(200, 200, 255, 0.9);
   font-size: 0.9rem;
   letter-spacing: 1px;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-decoration: none;
+}
+
+.username:hover {
+  color: rgba(0, 150, 255, 1);
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 .logout-btn {
@@ -636,6 +713,14 @@ button:hover:not(:disabled) {
   letter-spacing: 1px;
   padding: 0.75rem 1.5rem;
   border-bottom: 1px solid rgba(50, 50, 50, 0.5);
+  cursor: pointer;
+  transition: all 0.3s;
+  text-decoration: none;
+}
+
+.mobile-username:hover {
+  background-color: rgba(30, 30, 30, 0.9);
+  color: rgba(0, 150, 255, 1);
 }
 
 .mobile-logout-btn {
