@@ -128,6 +128,7 @@ import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import axios from 'axios';
 
+axios.defaults.withCredentials = true
 export default defineComponent({
   name: 'DashboardView',
   setup() {
@@ -152,18 +153,26 @@ export default defineComponent({
       likes: 0
     });
 
+    // fetchUserImages function
     const fetchUserImages = async () => {
       try {
-        // Only fetch images if user is authenticated
         if (authStore.isAuthenticated) {
-          const response = await axios.get('http://localhost:8080/api/images/user', {
-            withCredentials: true,
-          });
+          const response = await axios.get(
+            // local
+            // 'http://localhost:8080/api/images/user',
+            // deploy
+            'https://dreamlab-ai.online/api/images/user',
+            { withCredentials: true }
+          );
 
-          // Fetch like counts for each image
           const imagesWithLikes = await Promise.all(response.data.map(async (img: any) => {
             try {
-              const likeResponse = await axios.get(`http://localhost:8080/api/likes/${img.id}/count`);
+              const likeResponse = await axios.get(
+                // local
+                // `http://localhost:8080/api/likes/${img.id}/count`
+                // deploy
+                `https://dreamlab-ai.online/api/likes/${img.id}/count`
+              );
               return { ...img, likes: likeResponse.data };
             } catch (error) {
               return { ...img, likes: 0 };
@@ -172,33 +181,33 @@ export default defineComponent({
 
           images.value = imagesWithLikes;
         } else {
-          // Clear images if not authenticated
           images.value = [];
         }
       } catch (error) {
         console.error('Failed to fetch user images:', error);
-        images.value = []; // Clear images on error
+        images.value = [];
       }
     };
 
-    const toggleShare = async (image: { id: number; url: string; inputPrompt: string; public: boolean; likes?: number }) => {
+    // toggleShare function
+    const toggleShare = async (image: { id: number; public: boolean }) => {
       try {
         const newSharedStatus = !image.public;
         await axios.patch(
-          `http://localhost:8080/api/images/${image.id}/share?isPublic=${newSharedStatus}`,
-          {}, // Empty request body
+          // local
+          // `http://localhost:8080/api/images/${image.id}/share?isPublic=${newSharedStatus}`,
+          // deploy
+          `https://dreamlab-ai.online/api/images/${image.id}/share?isPublic=${newSharedStatus}`,
+          {},
           { withCredentials: true }
         );
 
-        // Update all instances of this image in our arrays
         image.public = newSharedStatus;
 
-        // If this is the selected image in the modal, update it there too
         if (selectedImage.value && selectedImage.value.id === image.id) {
           selectedImage.value.public = newSharedStatus;
         }
 
-        // Also update the corresponding image in the images array
         const thumbnailImage = images.value.find(img => img.id === image.id);
         if (thumbnailImage) {
           thumbnailImage.public = newSharedStatus;
@@ -229,9 +238,13 @@ export default defineComponent({
       if (!imageToDelete.value) return;
 
       try {
-        await axios.delete(`http://localhost:8080/api/images/${imageToDelete.value.id}`, {
-          withCredentials: true
-        });
+        await axios.delete(
+          // local
+          // `http://localhost:8080/api/images/${imageToDelete.value.id}`,
+          // deploy
+          `https://dreamlab-ai.online/api/images/${imageToDelete.value.id}`,
+          { withCredentials: true }
+        );
 
         // Remove the image from the local array
         images.value = images.value.filter(img => img.id !== imageToDelete.value!.id);

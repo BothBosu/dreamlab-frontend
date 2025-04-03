@@ -107,6 +107,7 @@ import { useAuthStore } from '@/stores/auth';
 import axios from "axios";
 import ErrorModal from '@/components/ErrorModal.vue';
 
+axios.defaults.withCredentials = true
 export default defineComponent({
   name: "ImageGalleryView",
   components: {
@@ -150,9 +151,19 @@ export default defineComponent({
   },
   methods: {
     async fetchImages() {
-      const response = await axios.get("http://localhost:8080/api/images/all");
+      const response = await axios.get(
+        // local
+        // "http://localhost:8080/api/images/all",
+        // deploy
+        "https://dreamlab-ai.online/api/images/all"
+      );
       this.images = await Promise.all(response.data.map(async (img: any) => {
-        const likeCountRes = await axios.get(`http://localhost:8080/api/likes/${img.id}/count`);
+        const likeCountRes = await axios.get(
+          // local
+          // `http://localhost:8080/api/likes/${img.id}/count`,
+          // deploy
+          `https://dreamlab-ai.online/api/likes/${img.id}/count`
+        );
         return {
           id: img.id,
           url: img.url,
@@ -174,21 +185,27 @@ export default defineComponent({
     },
     async toggleLike(image: any) {
       try {
-        await axios.post(`http://localhost:8080/api/likes/${image.id}/toggle`, {}, {
-          withCredentials: true
-        });
-        const res = await axios.get(`http://localhost:8080/api/likes/${image.id}/count`);
+        await axios.post(
+          // local
+          // `http://localhost:8080/api/likes/${image.id}/toggle`,
+          // deploy
+          `https://dreamlab-ai.online/api/likes/${image.id}/toggle`,
+          {},
+          { withCredentials: true }
+        );
+        const res = await axios.get(
+          // local
+          // `http://localhost:8080/api/likes/${image.id}/count`,
+          // deploy
+          `https://dreamlab-ai.online/api/likes/${image.id}/count`
+        );
 
-        // Update the like count for this image
         image.likes = res.data;
 
-        // Update the selected image like count if it's the same image
         if (this.selectedImage.id === image.id) {
           this.selectedImage.likes = res.data;
         }
 
-        // Also update the corresponding image in the images array
-        // This ensures thumbnail updates when like button is clicked in modal
         const thumbnailImage = this.images.find(img => img.id === image.id);
         if (thumbnailImage) {
           thumbnailImage.likes = res.data;

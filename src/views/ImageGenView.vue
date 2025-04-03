@@ -356,6 +356,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import SuccessModal from '@/components/SuccessModal.vue'
 
+axios.defaults.withCredentials = true
 export default defineComponent({
   name: 'ImageGenView',
   components: { SuccessModal },
@@ -438,75 +439,74 @@ export default defineComponent({
 
     const generateImage = async () => {
       if (!prompt.value.trim()) {
-        alert('Please enter a prompt before generating an image.')
-        return
+        alert('Please enter a prompt before generating an image.');
+        return;
       }
 
-      isGenerating.value = true
+      isGenerating.value = true;
 
       try {
-        const response = await axios.post('/api/images/generate', {
-          prompt: prompt.value,
-          negative_prompt: negativePrompt.value,
-          settings: {
-            width: settings.width,
-            height: settings.height,
-            steps: settings.steps,
-            seed: settings.seed
-          }
-        })
+        const response = await axios.post(
+          // local
+          // 'http://localhost:8080/api/images/generate',
 
-        // Log the response to inspect its structure
-        console.log('API Response:', response)
+          // deploy
+          'https://dreamlab-ai.online/api/images/generate',
 
-        // Handle different response formats
-        let imageUrl
+          {
+            prompt: prompt.value,
+            negative_prompt: negativePrompt.value,
+            settings: {
+              width: settings.width,
+              height: settings.height,
+              steps: settings.steps,
+              seed: settings.seed
+            }
+          },
+          { withCredentials: true }
+        );
+
+        console.log('API Response:', response);
+
+        let imageUrl;
 
         if (typeof response.data === 'string') {
-          // If the response is directly a string (URL)
-          imageUrl = response.data
-        } else if (typeof response.data === 'object') {
-          // If the response is a JSON object
-          if (response.data.imageUrl) {
-            imageUrl = response.data.imageUrl
-          } else if (response.data.url) {
-            imageUrl = response.data.url
-          } else {
-            // Try to find any property that looks like a URL
-            const possibleUrlProps = Object.entries(response.data)
-              .find(([_, value]) =>
-                typeof value === 'string' &&
-                (value.startsWith('http://') || value.startsWith('https://'))
-              )
+          imageUrl = response.data;
+        } else if (response.data.imageUrl) {
+          imageUrl = response.data.imageUrl;
+        } else if (response.data.url) {
+          imageUrl = response.data.url;
+        } else {
+          const possibleUrlProps = Object.entries(response.data)
+            .find(([_, value]) =>
+              typeof value === 'string' &&
+              (value.startsWith('http://') || value.startsWith('https://'))
+            );
 
-            if (possibleUrlProps) {
-              imageUrl = possibleUrlProps[1]
-            } else {
-              throw new Error('Could not find image URL in the response')
-            }
+          if (possibleUrlProps) {
+            imageUrl = possibleUrlProps[1];
+          } else {
+            throw new Error('Could not find image URL in the response');
           }
         }
 
-        // Check if we have a valid URL and it's not an error message
-        if (!imageUrl || (typeof imageUrl === 'string' && imageUrl.startsWith('Error:'))) {
-          throw new Error(imageUrl || 'Invalid response from server')
+        if (!imageUrl || imageUrl.startsWith('Error:')) {
+          throw new Error(imageUrl || 'Invalid response from server');
         }
 
-        // Store the image URL
-        generatedImage.value = imageUrl
+        generatedImage.value = imageUrl;
+        shareLink.value = imageUrl;
 
-        // Set share link to the same URL
-        shareLink.value = imageUrl
-
-        console.log('Image URL set to:', imageUrl)
+        console.log('Image URL set to:', imageUrl);
 
       } catch (error) {
-        console.error('Error generating image:', error)
-        alert('Failed to generate image. Please try again: ' + (error.message || 'Unknown error'))
+        console.error('Error generating image:', error);
+        alert('Failed to generate image. Please try again: ' + (error.message || 'Unknown error'));
       } finally {
-        isGenerating.value = false
+        isGenerating.value = false;
       }
-    }
+    };
+
 
     // Download image function
     const downloadImage = async () => {
@@ -545,17 +545,24 @@ export default defineComponent({
       }
 
       try {
-        const response = await axios.post('/api/images/save', {
-          imageUrl: generatedImage.value,
-          inputPrompt: prompt.value
-        }, { withCredentials: true });
+        const response = await axios.post(
+          // local
+          // 'http://localhost:8080/api/images/save',
+
+          // deploy
+          'https://dreamlab-ai.online/api/images/save',
+          {
+            imageUrl: generatedImage.value,
+            inputPrompt: prompt.value
+          },
+          { withCredentials: true }
+        );
 
         // Set a specific message for saving only
         modalMessage.value = 'Image saved successfully!';
         showSuccessModal.value = true;
       } catch (error: any) {
         isSaveDisabled.value = false; // Allow retry if error occurs
-        // Handle error messages here as before...
         if (error.response && error.response.status === 400) {
           const message = error.response.data.message || error.response.data || 'Unknown error';
           if (message.includes("User not found")) {
@@ -569,8 +576,7 @@ export default defineComponent({
           alert("Something went wrong. Please try again later.");
         }
       }
-    }
-
+    };
 
     const saveAndPublish = async () => {
       if (isSaveDisabled.value) return; // Already clicked
@@ -584,27 +590,37 @@ export default defineComponent({
       }
 
       try {
-        const saveResponse = await axios.post('/api/images/save', {
-          imageUrl: generatedImage.value,
-          inputPrompt: prompt.value
-        }, { withCredentials: true });
+        const saveResponse = await axios.post(
+          // local
+          // 'http://localhost:8080/api/images/save',
+
+          // deploy
+          'https://dreamlab-ai.online/api/images/save',
+          {
+            imageUrl: generatedImage.value,
+            inputPrompt: prompt.value
+          },
+          { withCredentials: true }
+        );
 
         if (saveResponse.data && saveResponse.data.success && saveResponse.data.imageId) {
           const imageId = saveResponse.data.imageId;
           await axios.patch(
-            `http://localhost:8080/api/images/${imageId}/share?isPublic=true`,
+            // local
+            // `http://localhost:8080/api/images/${imageId}/share?isPublic=true`,
+            // deploy
+            `https://dreamlab-ai.online/api/images/${imageId}/share?isPublic=true`,
             {},
             { withCredentials: true }
           );
-          // Set a specific message for saving and publishing
           modalMessage.value = 'Image saved and published successfully!';
           showSuccessModal.value = true;
         } else {
-          isSaveDisabled.value = false; // Re-enable if save not successful
+          isSaveDisabled.value = false;
           alert('Failed to save and publish image. Please try again.');
         }
       } catch (error: any) {
-        isSaveDisabled.value = false; // Re-enable on error
+        isSaveDisabled.value = false;
         if (error.response && error.response.status === 400) {
           const message = error.response.data.message || error.response.data || 'Unknown error';
           if (message.includes("User not found")) {
@@ -618,7 +634,7 @@ export default defineComponent({
           alert("Something went wrong. Please try again later.");
         }
       }
-    }
+    };
 
 
     const openShareModal = () => {

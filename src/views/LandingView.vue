@@ -185,6 +185,7 @@ import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 
+axios.defaults.withCredentials = true
 export default defineComponent({
   name: 'LandingView',
   setup() {
@@ -219,12 +220,22 @@ export default defineComponent({
         loading.value = true;
 
         // Fetch all images from your existing endpoint
-        const response = await axios.get("http://localhost:8080/api/images/all");
+        const response = await axios.get(
+          // local
+          // "http://localhost:8080/api/images/all",
+          // deploy
+          "https://dreamlab-ai.online/api/images/all"
+        );
 
-        // Process images with like counts (similar to your Gallery component)
+        // Process images with like counts
         const processedImages = await Promise.all(response.data.map(async (img: any) => {
           try {
-            const likeCountRes = await axios.get(`http://localhost:8080/api/likes/${img.id}/count`);
+            const likeCountRes = await axios.get(
+              // local
+              // `http://localhost:8080/api/likes/${img.id}/count`,
+              // deploy
+              `https://dreamlab-ai.online/api/likes/${img.id}/count`
+            );
             return {
               id: img.id,
               url: img.url,
@@ -243,16 +254,12 @@ export default defineComponent({
         }));
 
         if (processedImages.length > 0) {
-          // For sample images in hero section, use the newest images
-          // Assuming the API returns images with oldest first, so we reverse the array
           const newestImages = [...processedImages].reverse();
           sampleImages.value = newestImages.slice(0, 3);
 
-          // For gallery preview, sort by likes in descending order
           const sortedByLikes = [...processedImages].sort((a, b) => b.likes - a.likes);
           galleryImages.value = sortedByLikes.slice(0, 4);
 
-          // If we don't have enough images, reuse some
           if (galleryImages.value.length < 4) {
             const remaining = 4 - galleryImages.value.length;
             galleryImages.value = [
@@ -261,7 +268,6 @@ export default defineComponent({
             ];
           }
         } else {
-          // If there are no images, create some placeholders
           sampleImages.value = Array(3).fill(null).map((_, i) => ({
             id: i,
             url: '',
@@ -278,7 +284,6 @@ export default defineComponent({
         }
       } catch (error) {
         console.error('Error fetching images:', error);
-        // Create some placeholders in case of error
         sampleImages.value = Array(3).fill(null).map((_, i) => ({
           id: i,
           url: '',
@@ -350,6 +355,7 @@ export default defineComponent({
 
 /* Hero Section Styles */
 .hero-section {
+  padding-top: 100px;
   min-height: 80vh;
   display: flex;
   justify-content: center;
