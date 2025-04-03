@@ -213,20 +213,6 @@
               </svg>
               <span>Retry</span>
             </button>
-
-            <button
-              class="action-button download-button"
-              title="Download image"
-              @click="downloadImage"
-              :disabled="!generatedImage"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
-              </svg>
-              <span>Download</span>
-            </button>
             <button
               class="action-button save-button"
               title="Save to account"
@@ -508,29 +494,6 @@ export default defineComponent({
       }
     }
 
-    // Download image function
-    const downloadImage = async () => {
-      if (!generatedImage.value) return
-
-      try {
-        // Create an anchor element and trigger download
-        const response = await fetch(generatedImage.value)
-        const blob = await response.blob()
-        const url = window.URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.style.display = 'none'
-        a.href = url
-        a.download = `dreamlab-${prompt.value.substring(0, 20).replace(/[^a-z0-9]/gi, '-')}.png`
-        document.body.appendChild(a)
-        a.click()
-        window.URL.revokeObjectURL(url)
-        document.body.removeChild(a)
-      } catch (error) {
-        console.error('Error downloading image:', error)
-        alert('Failed to download image. Please try again.')
-      }
-    }
-
     // Save image to S3 function
     const saveImage = async () => {
       if (isSaveDisabled.value) return; // Already clicked
@@ -696,7 +659,6 @@ export default defineComponent({
       toggleMobileMenu,
       randomizeSeed,
       generateImage,
-      downloadImage,
       saveImage,
       shareModalOpen,
       openShareModal,
@@ -1440,16 +1402,6 @@ select {
   transition: all 0.3s;
   font-weight: 500;
   font-size: 14px;
-}
-
-.download-button {
-  background-color: #1a1a1a;
-  color: white;
-  border: 1px solid #333;
-}
-
-.download-button:hover {
-  background-color: #2a2a2a;
 }
 
 .save-button {
