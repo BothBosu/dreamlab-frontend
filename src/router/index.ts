@@ -7,6 +7,7 @@ import ImageGenView from '@/views/ImageGenView.vue'
 import ErrorView from '@/views/ErrorView.vue'
 import LandingView from '@/views/LandingView.vue'
 import DashboardView from '@/views/DashboardView.vue'
+import UserProfileView from '@/views/UserProfileView.vue'
 
 /**
  * TODO: Don't forget to change the requiresAuth meta to true when actually deploying the app
@@ -29,6 +30,12 @@ const routes: Array<RouteRecordRaw> = [
     name: 'register',
     component: RegisterView,
     meta: { requiresAuth: false }
+  },
+  {
+    path: '/profile',
+    name: 'profile',
+    component: UserProfileView,
+    meta: { requiresAuth: true }
   },
   {
     path: '/dashboard',
@@ -76,6 +83,20 @@ router.beforeEach(async (to, _from, next) => {
   // If not authenticated, check auth status with backend
   if (!isAuthenticated) {
     await authStore.checkAuthStatus()
+  }
+
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    // Check if the user is authenticated
+    if (!authStore.isAuthenticated) {
+      // Redirect to login page if not authenticated
+      next({ name: 'login' });
+    } else {
+      // Allow access if authenticated
+      next();
+    }
+  } else {
+    // Allow access to non-protected routes
+    next();
   }
 
   if (requiresAuth && !authStore.isAuthenticated) {
