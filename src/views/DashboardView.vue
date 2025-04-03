@@ -14,7 +14,7 @@
       </div>
       <div class="navbar-user-manage">
         <template v-if="isAuthenticated">
-          <span class="username">{{ userDisplayName }}</span>
+          <router-link to="/profile" class="username">{{ userDisplayName }}</router-link>
           <button @click="logout" class="logout-btn">Logout</button>
         </template>
         <template v-else>
@@ -33,7 +33,7 @@
       <router-link to="/imagegen" class="mobile-nav-link" @click="toggleMobileMenu">Generate</router-link>
       <router-link to="/dashboard" class="mobile-nav-link" @click="toggleMobileMenu">Dashboard</router-link>
       <template v-if="isAuthenticated">
-        <span class="mobile-username">{{ userDisplayName }}</span>
+        <router-link to="/profile" class="mobile-username" @click="toggleMobileMenu">{{ userDisplayName }}</router-link>
         <button @click="logout" class="mobile-logout-btn">Logout</button>
       </template>
       <template v-else>
@@ -354,6 +354,12 @@ export default defineComponent({
   overflow: hidden;
   border-radius: 4px;
   cursor: pointer;
+  height: 140px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(10, 10, 10, 0.8);
 }
 
 .gallery-item img {
@@ -886,6 +892,16 @@ export default defineComponent({
   color: rgba(200, 200, 255, 0.9);
   font-size: 0.9rem;
   letter-spacing: 1px;
+  text-decoration: none;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.username:hover {
+  color: rgba(0, 150, 255, 1);
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 .logout-btn {
@@ -897,6 +913,7 @@ export default defineComponent({
   font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.3s;
+  width: auto;
 }
 
 .logout-btn:hover {
@@ -958,6 +975,14 @@ export default defineComponent({
   letter-spacing: 1px;
   padding: 0.75rem 1.5rem;
   border-bottom: 1px solid rgba(50, 50, 50, 0.5);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.mobile-username:hover {
+  background-color: rgba(30, 30, 30, 0.9);
+  color: rgba(0, 150, 255, 1);
 }
 
 .mobile-logout-btn {

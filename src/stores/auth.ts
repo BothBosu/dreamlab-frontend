@@ -116,6 +116,25 @@ export const useAuthStore = defineStore('auth', {
     this.user = null;
     this.isAuthenticated = false;
     localStorage.removeItem('user');
+  },
+
+  // Add this method to the actions section of your auth store
+  updateProfilePicture(profilePicture: string): void {
+    if (this.user) {
+      // Update the user object in the store state
+      this.user = {
+        ...this.user,
+        profilePicture
+      };
+
+      // Update localStorage to persist the change
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        const userData = JSON.parse(storedUser) as User;
+        userData.profilePicture = profilePicture;
+        localStorage.setItem('user', JSON.stringify(userData));
+      }
+    }
   }
 }
 });

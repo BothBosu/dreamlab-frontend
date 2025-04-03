@@ -14,7 +14,7 @@
       </div>
       <div class="navbar-user-manage">
         <template v-if="isAuthenticated">
-          <span class="username">{{ userDisplayName }}</span>
+          <router-link to="/profile" class="username">{{ userDisplayName }}</router-link>
           <button @click="logout" class="logout-btn">Logout</button>
         </template>
         <template v-else>
@@ -33,7 +33,7 @@
       <router-link to="/imagegen" class="mobile-nav-link" @click="toggleMobileMenu">Generate</router-link>
       <router-link to="/dashboard" class="mobile-nav-link" @click="toggleMobileMenu">Dashboard</router-link>
       <template v-if="isAuthenticated">
-        <span class="mobile-username">{{ userDisplayName }}</span>
+        <router-link to="/profile" class="mobile-username" @click="toggleMobileMenu">{{ userDisplayName }}</router-link>
         <button @click="logout" class="mobile-logout-btn">Logout</button>
       </template>
       <template v-else>
@@ -212,20 +212,6 @@
                 <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
               </svg>
               <span>Retry</span>
-            </button>
-
-            <button
-              class="action-button download-button"
-              title="Download image"
-              @click="downloadImage"
-              :disabled="!generatedImage"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
-              </svg>
-              <span>Download</span>
             </button>
             <button
               class="action-button save-button"
@@ -508,29 +494,6 @@ export default defineComponent({
     };
 
 
-    // Download image function
-    const downloadImage = async () => {
-      if (!generatedImage.value) return
-
-      try {
-        // Create an anchor element and trigger download
-        const response = await fetch(generatedImage.value)
-        const blob = await response.blob()
-        const url = window.URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.style.display = 'none'
-        a.href = url
-        a.download = `dreamlab-${prompt.value.substring(0, 20).replace(/[^a-z0-9]/gi, '-')}.png`
-        document.body.appendChild(a)
-        a.click()
-        window.URL.revokeObjectURL(url)
-        document.body.removeChild(a)
-      } catch (error) {
-        console.error('Error downloading image:', error)
-        alert('Failed to download image. Please try again.')
-      }
-    }
-
     // Save image to S3 function
     const saveImage = async () => {
       if (isSaveDisabled.value) return; // Already clicked
@@ -712,7 +675,6 @@ export default defineComponent({
       toggleMobileMenu,
       randomizeSeed,
       generateImage,
-      downloadImage,
       saveImage,
       shareModalOpen,
       openShareModal,
@@ -862,6 +824,16 @@ export default defineComponent({
   color: rgba(200, 200, 255, 0.9);
   font-size: 0.9rem;
   letter-spacing: 1px;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-decoration: none;
+}
+
+.username:hover {
+  color: rgba(0, 150, 255, 1);
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 .logout-btn {
@@ -934,6 +906,14 @@ export default defineComponent({
   letter-spacing: 1px;
   padding: 0.75rem 1.5rem;
   border-bottom: 1px solid rgba(50, 50, 50, 0.5);
+  cursor: pointer;
+  transition: all 0.3s;
+  text-decoration: none;
+}
+
+.mobile-username:hover {
+  background-color: rgba(30, 30, 30, 0.9);
+  color: rgba(0, 150, 255, 1);
 }
 
 .mobile-logout-btn {
@@ -1438,16 +1418,6 @@ select {
   transition: all 0.3s;
   font-weight: 500;
   font-size: 14px;
-}
-
-.download-button {
-  background-color: #1a1a1a;
-  color: white;
-  border: 1px solid #333;
-}
-
-.download-button:hover {
-  background-color: #2a2a2a;
 }
 
 .save-button {
