@@ -309,7 +309,10 @@ export default defineComponent({
 
       try {
         const response = await axios.post(
-          'http://localhost:8080/api/users/update-password',
+          // local
+          // 'http://localhost:8080/api/users/update-password',
+          // deploy
+          'https://dreamlab-ai.online/api/users/update-password',
           {
             currentPassword: currentPassword.value,
             newPassword: newPassword.value,
@@ -1042,8 +1045,27 @@ button:hover:not(:disabled) {
     display: block;
   }
 
+  /* Fix the mobile menu */
   .mobile-menu {
     display: flex;
+    position: fixed; /* Fixed position instead of absolute */
+    top: 60px; /* Position it right below the navbar */
+    left: 0;
+    right: 0;
+    background-color: rgba(15, 15, 15, 0.95);
+    border-bottom: 1px solid rgba(50, 50, 50, 0.5);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    z-index: 99;
+    transform: translateY(-100%); /* Start above the viewport */
+    opacity: 0; /* Start invisible */
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    flex-direction: column;
+  }
+
+  /* When active, show the menu */
+  .mobile-menu.active {
+    transform: translateY(0); /* Move to its proper position */
+    opacity: 1;
   }
 
   .profile-card {

@@ -699,17 +699,11 @@ export default defineComponent({
 }
 
 .dashboard-content {
-  padding: 0.5rem;
+  padding-top: 100px;
+  padding-right: 1.5rem;
+  padding-bottom: 1.5rem;
+  padding-left: 1.5rem;
   text-align: center;
-  padding-top: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.dashboard-content {
-  padding: 0.5rem;
-  text-align: center;
-  padding-top: 40px;
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -1015,8 +1009,27 @@ export default defineComponent({
     display: block;
   }
 
+  /* Fix the mobile menu */
   .mobile-menu {
     display: flex;
+    position: fixed; /* Fixed position instead of absolute */
+    top: 60px; /* Position it right below the navbar */
+    left: 0;
+    right: 0;
+    background-color: rgba(15, 15, 15, 0.95);
+    border-bottom: 1px solid rgba(50, 50, 50, 0.5);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    z-index: 99;
+    transform: translateY(-100%); /* Start above the viewport */
+    opacity: 0; /* Start invisible */
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    flex-direction: column;
+  }
+
+  /* When active, show the menu */
+  .mobile-menu.active {
+    transform: translateY(0); /* Move to its proper position */
+    opacity: 1;
   }
 
   .dashboard-content {
