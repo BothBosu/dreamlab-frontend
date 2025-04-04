@@ -97,21 +97,60 @@
     <div class="full-image-modal-overlay" v-if="showImageModal" @click="closeImageModal">
       <div class="full-image-modal" @click.stop>
         <button class="close-modal-btn" @click="closeImageModal">×</button>
-        <div class="full-image-container">
-          <img :src="selectedImage.url" :alt="selectedImage.inputPrompt" class="modal-image" />
-        </div>
-        <div class="full-image-info">
-          <div class="title-with-actions">
-            <h3>"{{ selectedImage.inputPrompt }}"</h3>
-            <div class="modal-actions">
-              <div class="like-count-display">
-                <span class="heart-icon">❤️</span>
-                <span class="like-count">{{ selectedImage.likes || 0 }}</span>
+        <div class="modal-body">
+          <div class="modal-main-content">
+            <div class="full-image-container">
+              <img :src="selectedImage.url" :alt="selectedImage.inputPrompt" class="modal-image" />
+            </div>
+          </div>
+          <div class="modal-sidebar">
+            <div class="sidebar-section">
+              <div class="metadata-icon">📝</div>
+              <div class="metadata-content">
+                <h4>Prompt</h4>
+                <p>{{ selectedImage.inputPrompt }}</p>
               </div>
-              <button @click="toggleShare(selectedImage)" class="modal-share-btn">
+            </div>
+
+            <div class="sidebar-section">
+              <div class="metadata-icon">📏</div>
+              <div class="metadata-content">
+                <h4>Image Details</h4>
+                <div class="metadata-grid">
+                  <div class="metadata-item">
+                    <span class="metadata-label">Image ID</span>
+                    <span class="metadata-value">#{{ selectedImage.id }}</span>
+                  </div>
+                  <div class="metadata-item">
+                    <span class="metadata-label">Likes</span>
+                    <span class="metadata-value">{{ selectedImage.likes || 0 }}</span>
+                  </div>
+                  <div class="metadata-item">
+                    <span class="metadata-label">Status</span>
+                    <span class="metadata-value status-badge" :class="selectedImage.public ? 'public' : 'private'">
+                      {{ selectedImage.public ? 'Public' : 'Private' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="sidebar-section">
+              <div class="metadata-icon">🛠️</div>
+              <div class="metadata-content">
+                <h4>Tool</h4>
+                <p>Dream Lab Image Generator</p>
+              </div>
+            </div>
+
+            <div class="sidebar-actions">
+              <button @click="downloadImage" class="sidebar-action-btn download-btn">
+                <span class="action-icon">⬇️</span> Download
+              </button>
+              <button @click="toggleShare(selectedImage)" class="sidebar-action-btn publish-btn">
                 {{ selectedImage.public ? "Unpublish" : "Publish" }}
               </button>
-              <button @click="confirmDeleteFromModal" class="modal-delete-btn">
+              <button @click="confirmDeleteFromModal" class="sidebar-action-btn delete-btn">
                 Delete
               </button>
             </div>
@@ -139,18 +178,19 @@ export default defineComponent({
     const isAuthenticated = computed(() => authStore.isAuthenticated);
     const userDisplayName = computed(() => authStore.user?.username || 'User');
 
-    const images = ref<Array<{ id: number; url: string; inputPrompt: string; public: boolean; likes?: number }>>([]);
+    const images = ref<Array<{ id: number; url: string; inputPrompt: string; public: boolean; likes?: number; createdAt?: string }>>([]);
     const showDeleteModal = ref(false);
     const imageToDelete = ref<{ id: number; url: string; inputPrompt: string; public: boolean; likes?: number } | null>(null);
 
     // For full image modal
     const showImageModal = ref(false);
-    const selectedImage = ref<{ id: number; url: string; inputPrompt: string; public: boolean; likes?: number }>({
+    const selectedImage = ref<{ id: number; url: string; inputPrompt: string; public: boolean; likes?: number; createdAt?: string }>({
       id: 0,
       url: '',
       inputPrompt: '',
       public: false,
-      likes: 0
+      likes: 0,
+      createdAt: new Date().toISOString()
     });
 
     // fetchUserImages function
@@ -274,7 +314,7 @@ export default defineComponent({
     };
 
     // Functions for full image modal
-    const openImageModal = (image: { id: number; url: string; inputPrompt: string; public: boolean; likes?: number }) => {
+    const openImageModal = (image: { id: number; url: string; inputPrompt: string; public: boolean; likes?: number; createdAt?: string }) => {
       selectedImage.value = { ...image };
       showImageModal.value = true;
       // Add body class to prevent scrolling
@@ -285,6 +325,19 @@ export default defineComponent({
       showImageModal.value = false;
       // Remove body class to restore scrolling
       document.body.classList.remove('modal-open');
+    };
+
+    // New function for downloading images
+    const downloadImage = () => {
+      if (!selectedImage.value.url) return;
+
+      // Create an anchor element
+      const a = document.createElement('a');
+      a.href = selectedImage.value.url;
+      a.download = `dreamlab-image-${selectedImage.value.id}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     };
 
     // Watch for authentication changes
@@ -318,7 +371,8 @@ export default defineComponent({
       selectedImage,
       openImageModal,
       closeImageModal,
-      confirmDeleteFromModal
+      confirmDeleteFromModal,
+      downloadImage
     };
   }
 });
@@ -538,7 +592,7 @@ export default defineComponent({
   background-color: rgba(70, 70, 70, 1);
 }
 
-/* Full Image Modal */
+/* Full Image Modal - Updated for new design */
 .full-image-modal-overlay {
   position: fixed;
   top: 0;
@@ -555,10 +609,11 @@ export default defineComponent({
 
 .full-image-modal {
   background-color: rgba(20, 20, 20, 0.9);
-  border-radius: 8px;
-  max-width: 90%;
-  max-height: 90vh;
-  width: auto;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 1200px;
+  height: 90vh;
+  max-height: 800px;
   overflow: hidden;
   position: relative;
   display: flex;
@@ -569,8 +624,8 @@ export default defineComponent({
 
 .close-modal-btn {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 15px;
+  right: 15px;
   background: rgba(0, 0, 0, 0.5);
   border: none;
   color: white;
@@ -591,84 +646,169 @@ export default defineComponent({
   transform: scale(1.1);
 }
 
-.full-image-container {
-  max-height: 120vh;
+.modal-body {
+  display: flex;
+  height: 100%;
+  width: 100%;
+}
+
+.modal-main-content {
+  flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
+  overflow: hidden;
+  background-color: rgba(15, 15, 15, 0.95);
+}
+
+.full-image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
   padding: 20px;
 }
 
-.full-image-container img {
+.modal-image {
   max-width: 100%;
-  max-height: 75vh;
+  max-height: 100%;
   object-fit: contain;
   border-radius: 4px;
 }
 
-.full-image-info {
-  padding: 15px 20px;
-  border-top: 1px solid rgba(50, 50, 50, 0.5);
-  background-color: rgba(15, 15, 15, 0.9);
-}
-
-.title-with-actions {
+.modal-sidebar {
+  width: 320px;
+  background-color: rgba(25, 25, 25, 0.95);
+  border-left: 1px solid rgba(50, 50, 50, 0.5);
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
+  flex-direction: column;
+  overflow-y: auto;
 }
 
-.full-image-info h3 {
+.sidebar-section {
+  padding: 20px;
+  border-bottom: 1px solid rgba(50, 50, 50, 0.5);
+  display: flex;
+  gap: 15px;
+}
+
+.metadata-icon {
+  font-size: 24px;
+  color: rgba(200, 200, 200, 0.8);
+}
+
+.metadata-content {
+  flex: 1;
+}
+
+.metadata-content h4 {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+  color: rgba(200, 200, 200, 0.9);
+  font-weight: 600;
+}
+
+.metadata-content p {
   margin: 0;
-  font-size: 1.2rem;
-  color: rgba(240, 240, 240, 0.9);
-  max-width: 70%;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 14px;
+  word-break: break-word;
 }
 
-/* Like display in modal */
-.like-count-display {
+.metadata-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.metadata-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.metadata-label {
+  font-size: 12px;
+  color: rgba(180, 180, 180, 0.7);
+}
+
+.metadata-value {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-badge.public {
+  background-color: rgba(0, 200, 83, 0.2);
+  color: rgba(0, 255, 106, 0.9);
+  border: 1px solid rgba(0, 200, 83, 0.3);
+}
+
+.status-badge.private {
+  background-color: rgba(255, 100, 0, 0.2);
+  color: rgba(255, 149, 0, 0.9);
+  border: 1px solid rgba(255, 100, 0, 0.3);
+}
+
+.sidebar-actions {
+  margin-top: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 1px solid rgba(50, 50, 50, 0.5);
+}
+
+.sidebar-action-btn {
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 0.5rem 0.75rem;
-  background-color: rgba(40, 40, 40, 0.3);  /* More transparent */
-  border-radius: 20px;
-  margin-right: 0.5rem;
-}
-
-.modal-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.modal-share-btn, .modal-delete-btn {
-  padding: 0.5rem 0.75rem;
-  border-radius: 4px;
-  font-size: 0.85rem;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 0;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 500;
   cursor: pointer;
   border: none;
-  transition: all 0.3s;
+  transition: all 0.2s;
 }
 
-.modal-share-btn {
+.action-icon {
+  font-size: 16px;
+}
+
+.download-btn {
+  background-color: rgba(50, 50, 50, 0.8);
+  color: white;
+}
+
+.download-btn:hover {
+  background-color: rgba(70, 70, 70, 1);
+}
+
+.publish-btn {
   background-color: #007bff;
   color: white;
 }
 
-.modal-share-btn:hover {
+.publish-btn:hover {
   background-color: #0056b3;
 }
 
-.modal-delete-btn {
+.delete-btn {
   background-color: rgba(255, 50, 50, 0.8);
   color: white;
 }
 
-.modal-delete-btn:hover {
+.delete-btn:hover {
   background-color: rgba(255, 30, 30, 1);
 }
 
@@ -1044,27 +1184,37 @@ export default defineComponent({
     flex-direction: column;
   }
 
-  .full-image-container {
-    max-height: 65vh;
-  }
-
-  .full-image-container img {
-    max-height: 65vh;
-  }
-
-  .title-with-actions {
+  /* Modal responsiveness */
+  .modal-body {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
   }
 
-  .title-with-actions h3 {
-    max-width: 100%;
-  }
-
-  .modal-actions {
-    display: flex;
+  .modal-sidebar {
     width: 100%;
+    max-height: 50vh;
+    border-left: none;
+    border-top: 1px solid rgba(50, 50, 50, 0.5);
+  }
+
+  .full-image-modal {
+    height: 95vh;
+    max-height: none;
+  }
+
+  .modal-main-content {
+    flex: 0 0 50%;
+  }
+
+  .full-image-container {
+    padding: 15px;
+  }
+
+  .metadata-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar-section {
+    padding: 15px;
   }
 }
 

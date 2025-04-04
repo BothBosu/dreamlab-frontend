@@ -79,20 +79,61 @@
     <div class="full-image-modal-overlay" v-if="showImageModal" @click="closeImageModal">
       <div class="full-image-modal" @click.stop>
         <button class="close-modal-btn" @click="closeImageModal">×</button>
-        <div class="full-image-container">
-          <img :src="selectedImage.url" :alt="selectedImage.title" class="modal-image" />
-        </div>
-        <div class="full-image-info">
-          <div class="title-with-like">
-            <h3>"{{ selectedImage.title }}"</h3>
-            <button
-              @click="handleLikeClick(selectedImage)"
-              class="modal-like-button"
-              :class="{ 'disabled': !isAuthenticated }"
-            >
-              <span class="heart-icon">❤️</span>
-              <span class="like-count">{{ selectedImage.likes }}</span>
-            </button>
+        <div class="modal-body">
+          <div class="modal-main-content">
+            <div class="full-image-container">
+              <img :src="selectedImage.url" :alt="selectedImage.title" class="modal-image" />
+            </div>
+          </div>
+          <div class="modal-sidebar">
+            <div class="sidebar-section">
+              <div class="metadata-icon">📝</div>
+              <div class="metadata-content">
+                <h4>Prompt</h4>
+                <p>{{ selectedImage.title }}</p>
+              </div>
+            </div>
+
+            <div class="sidebar-section">
+              <div class="metadata-icon">📏</div>
+              <div class="metadata-content">
+                <h4>Image Details</h4>
+                <div class="metadata-grid">
+                  <div class="metadata-item">
+                    <span class="metadata-label">Image ID</span>
+                    <span class="metadata-value">#{{ selectedImage.id }}</span>
+                  </div>
+                  <div class="metadata-item">
+                    <span class="metadata-label">Likes</span>
+                    <span class="metadata-value">{{ selectedImage.likes }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="sidebar-section">
+              <div class="metadata-icon">🛠️</div>
+              <div class="metadata-content">
+                <h4>Tool</h4>
+                <p>Dream Lab Image Generator</p>
+              </div>
+            </div>
+
+            <div class="sidebar-actions">
+              <button @click="downloadImage" class="sidebar-action-btn download-btn">
+                <span class="action-icon">⬇️</span> Download
+              </button>
+              <button
+                @click="handleLikeClick(selectedImage)"
+                class="sidebar-action-btn like-btn"
+                :class="{ 'disabled': !isAuthenticated }"
+              >
+                <span class="action-icon">❤️</span> Like
+              </button>
+              <a :href="'/imagegen?prompt=' + encodeURIComponent(selectedImage.title)" class="sidebar-action-btn remix-btn">
+                <span class="action-icon">🔄</span> Use Prompt
+              </a>
+            </div>
           </div>
         </div>
       </div>
@@ -140,13 +181,13 @@ export default defineComponent({
   },
   data() {
     return {
-      images: [] as Array<{ id: number; url: string; title: string; likes: number }>,
+      images: [] as Array<{ id: number; url: string; title: string; likes: number; createdAt?: string }>,
       showErrorModal: false,
       errorTitle: 'Authentication Required',
       errorMessage: 'Please log in to like images.',
       errorButtonText: 'OK',
       showImageModal: false,
-      selectedImage: { id: 0, url: '', title: '', likes: 0 }
+      selectedImage: { id: 0, url: '', title: '', likes: 0, createdAt: new Date().toISOString() }
     };
   },
   methods: {
@@ -168,7 +209,8 @@ export default defineComponent({
           id: img.id,
           url: img.url,
           title: img.inputPrompt || `Image ${img.id}`,
-          likes: likeCountRes.data
+          likes: likeCountRes.data,
+          createdAt: img.createdAt || new Date().toISOString()
         };
       }));
     },
@@ -226,6 +268,20 @@ export default defineComponent({
       this.showImageModal = false;
       // Remove body class to restore scrolling
       document.body.classList.remove('modal-open');
+    },
+    downloadImage() {
+      if (!this.selectedImage.url) return;
+
+      // Create an anchor element
+      const a = document.createElement('a');
+      a.href = this.selectedImage.url;
+      a.download = `dreamlab-image-${this.selectedImage.id}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    },
+    encodeURIComponent(text: string) {
+      return encodeURIComponent(text);
     }
   },
   mounted() {
@@ -384,7 +440,7 @@ h1 {
   opacity: 1;
 }
 
-/* Full Image Modal */
+/* Full Image Modal - Updated for new design */
 .full-image-modal-overlay {
   position: fixed;
   top: 0;
@@ -401,10 +457,11 @@ h1 {
 
 .full-image-modal {
   background-color: rgba(20, 20, 20, 0.9);
-  border-radius: 8px;
-  max-width: 90%;
-  max-height: 90vh;
-  width: auto;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 1200px;
+  height: 90vh;
+  max-height: 800px;
   overflow: hidden;
   position: relative;
   display: flex;
@@ -415,8 +472,8 @@ h1 {
 
 .close-modal-btn {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 15px;
+  right: 15px;
   background: rgba(0, 0, 0, 0.5);
   border: none;
   color: white;
@@ -437,63 +494,156 @@ h1 {
   transform: scale(1.1);
 }
 
-.full-image-container {
-  max-height: 120vh;
+.modal-body {
+  display: flex;
+  height: 100%;
+  width: 100%;
+}
+
+.modal-main-content {
+  flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
+  overflow: hidden;
+  background-color: rgba(15, 15, 15, 0.95);
+}
+
+.full-image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
   padding: 20px;
 }
 
-.full-image-container img {
+.modal-image {
   max-width: 100%;
-  max-height: 75vh;
+  max-height: 100%;
   object-fit: contain;
   border-radius: 4px;
 }
 
-.full-image-info {
-  padding: 15px 20px;
-  border-top: 1px solid rgba(50, 50, 50, 0.5);
-  background-color: rgba(15, 15, 15, 0.9);
+.modal-sidebar {
+  width: 320px;
+  background-color: rgba(25, 25, 25, 0.95);
+  border-left: 1px solid rgba(50, 50, 50, 0.5);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
 }
 
-.full-image-info h3 {
+.sidebar-section {
+  padding: 20px;
+  border-bottom: 1px solid rgba(50, 50, 50, 0.5);
+  display: flex;
+  gap: 15px;
+}
+
+.metadata-icon {
+  font-size: 24px;
+  color: rgba(200, 200, 200, 0.8);
+}
+
+.metadata-content {
+  flex: 1;
+}
+
+.metadata-content h4 {
   margin: 0 0 10px 0;
-  font-size: 1.2rem;
-  color: rgba(240, 240, 240, 0.9);
+  font-size: 16px;
+  color: rgba(200, 200, 200, 0.9);
+  font-weight: 600;
 }
 
-.title-with-like {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
+.metadata-content p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 14px;
+  word-break: break-word;
 }
 
-.modal-like-button {
+.metadata-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.metadata-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.metadata-label {
+  font-size: 12px;
+  color: rgba(180, 180, 180, 0.7);
+}
+
+.metadata-value {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.sidebar-actions {
+  margin-top: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 1px solid rgba(50, 50, 50, 0.5);
+}
+
+.sidebar-action-btn {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  background: rgba(40, 40, 40, 0.7);
-  color: white;
-  border: none;
-  border-radius: 50px;
-  padding: 8px 15px;
-  font-size: 0.9rem;
+  padding: 10px 0;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s;
-  backdrop-filter: blur(2px);
+  border: none;
+  transition: all 0.2s;
+  text-decoration: none;
 }
 
-.modal-like-button:hover:not(.disabled) {
-  background: rgba(50, 50, 50, 0.9);
-  transform: scale(1.05);
+.action-icon {
+  font-size: 16px;
 }
 
-.modal-like-button.disabled {
+.download-btn {
+  background-color: rgba(50, 50, 50, 0.8);
+  color: white;
+}
+
+.download-btn:hover {
+  background-color: rgba(70, 70, 70, 1);
+}
+
+.like-btn {
+  background-color: rgba(255, 50, 50, 0.7);
+  color: white;
+}
+
+.like-btn:hover:not(.disabled) {
+  background-color: rgba(255, 30, 30, 0.9);
+}
+
+.like-btn.disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.remix-btn {
+  background-color: #007bff;
+  color: white;
+}
+
+.remix-btn:hover {
+  background-color: #0056b3;
 }
 
 /* Animation */
@@ -777,12 +927,37 @@ h1 {
     object-fit: contain;
   }
 
+  /* Modal responsiveness */
+  .modal-body {
+    flex-direction: column;
+  }
+
+  .modal-sidebar {
+    width: 100%;
+    max-height: 50vh;
+    border-left: none;
+    border-top: 1px solid rgba(50, 50, 50, 0.5);
+  }
+
   .full-image-modal {
-    width: 95%;
+    height: 95vh;
+    max-height: none;
+  }
+
+  .modal-main-content {
+    flex: 0 0 50%;
   }
 
   .full-image-container {
-    max-height: 60vh;
+    padding: 15px;
+  }
+
+  .metadata-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar-section {
+    padding: 15px;
   }
 }
 
