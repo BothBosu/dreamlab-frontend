@@ -839,11 +839,9 @@ export default defineComponent({
 }
 
 .dashboard-content {
-  padding-top: 100px;
-  padding-right: 1.5rem;
-  padding-bottom: 1.5rem;
-  padding-left: 1.5rem;
+  padding: 2rem;
   text-align: center;
+  padding-top: 80px; /* Space for the fixed navbar */
   max-width: 1200px;
   margin: 0 auto;
 }
