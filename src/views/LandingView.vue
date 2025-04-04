@@ -51,25 +51,27 @@
         </div>
         <p class="tagline">Transform your imagination into stunning AI-generated art</p>
 
-        <!-- Sample Images Showcase -->
-        <div class="image-showcase">
-          <template v-if="loading">
-            <div class="sample-image" v-for="i in 3" :key="i">
-              <div class="image-placeholder">
-                <div class="placeholder-text">Loading...</div>
-              </div>
+        <!-- Continuous Auto-Scrolling Slider -->
+        <div class="slider-container">
+          <div v-if="loading" class="loading-container">
+            <div class="image-placeholder" v-for="i in 3" :key="i">
+              <div class="placeholder-text">Loading...</div>
             </div>
-          </template>
-          <template v-else>
-            <div class="sample-image" v-for="(image, i) in sampleImages" :key="i">
+          </div>
+          <div v-else ref="sliderTrack" class="slider-track">
+            <div
+              class="slider-item"
+              v-for="(image, index) in displayImages"
+              :key="`${image.id}-${index}`"
+            >
               <img
                 :src="image.url"
-                alt="Sample image"
-                class="sample-img"
-                @error="handleImageError($event, i, 'sample')"
+                :alt="image.title || 'Gallery Image'"
+                class="slider-img"
+                @error="handleImageError($event, index, 'slider')"
               />
             </div>
-          </template>
+          </div>
         </div>
 
         <!-- Generate Button -->
@@ -174,13 +176,13 @@
           <router-link to="/register">Register</router-link>
         </div>
       </div>
-      <div class="copyright">© 2025 Dream Lab. All rights reserved.</div>
+      <div class="copyright">© 2025 Dream Lab. All rights reserved. <router-link to="/secret" class="easter-egg">🥚</router-link></div>
     </footer>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, onMounted } from 'vue';
+import { defineComponent, ref, computed, onMounted, onUnmounted } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
@@ -195,15 +197,49 @@ export default defineComponent({
     const loading = ref(true);
 
     // Data for images
-    const sampleImages = ref<any[]>([]);
+    const allImages = ref<any[]>([]);
     const galleryImages = ref<any[]>([]);
-
-    // For tracking images that failed to load
-    const failedSampleImages = ref<number[]>([]);
     const failedGalleryImages = ref<number[]>([]);
+    const failedSliderImages = ref<number[]>([]);
+
+    // Slider references and animation
+    const sliderTrack = ref<HTMLElement | null>(null);
+    const animationFrame = ref<number | null>(null);
+    const scrollPosition = ref(0);
+    const scrollSpeed = 1.2;
+
+    const displayImages = computed(() => {
+      if (allImages.value.length === 0) return [];
+
+      return [...allImages.value, ...allImages.value, ...allImages.value];
+    });
 
     const isAuthenticated = computed(() => authStore.isAuthenticated);
     const userDisplayName = computed(() => authStore.user?.username || 'User');
+
+    // Animation function for continuous scrolling
+    const animateScroll = () => {
+      if (!sliderTrack.value) return;
+
+      scrollPosition.value += scrollSpeed;
+
+      const trackWidth = sliderTrack.value.scrollWidth / 3;
+
+      if (scrollPosition.value >= trackWidth) {
+        scrollPosition.value = 0;
+      }
+
+      sliderTrack.value.style.transform = `translateX(-${scrollPosition.value}px)`;
+      animationFrame.value = requestAnimationFrame(animateScroll);
+    };
+
+    // Start the animation
+    const startScrollAnimation = () => {
+      if (animationFrame.value) {
+        cancelAnimationFrame(animationFrame.value);
+      }
+      animationFrame.value = requestAnimationFrame(animateScroll);
+    };
 
     const toggleMobileMenu = () => {
       mobileMenuOpen.value = !mobileMenuOpen.value;
@@ -254,9 +290,10 @@ export default defineComponent({
         }));
 
         if (processedImages.length > 0) {
-          const newestImages = [...processedImages].reverse();
-          sampleImages.value = newestImages.slice(0, 3);
+          // Store all images for the slider
+          allImages.value = processedImages;
 
+          // Get top-liked images for gallery preview
           const sortedByLikes = [...processedImages].sort((a, b) => b.likes - a.likes);
           galleryImages.value = sortedByLikes.slice(0, 4);
 
@@ -267,8 +304,14 @@ export default defineComponent({
               ...sortedByLikes.slice(0, remaining)
             ];
           }
+
+          // Start the animation after images load
+          setTimeout(() => {
+            startScrollAnimation();
+          }, 500);
         } else {
-          sampleImages.value = Array(3).fill(null).map((_, i) => ({
+          // Fallback for no images
+          allImages.value = Array(6).fill(null).map((_, i) => ({
             id: i,
             url: '',
             title: 'Sample Image',
@@ -284,7 +327,9 @@ export default defineComponent({
         }
       } catch (error) {
         console.error('Error fetching images:', error);
-        sampleImages.value = Array(3).fill(null).map((_, i) => ({
+
+        // Fallback for error state
+        allImages.value = Array(6).fill(null).map((_, i) => ({
           id: i,
           url: '',
           title: 'Sample Image',
@@ -303,7 +348,7 @@ export default defineComponent({
     };
 
     // Handle image loading errors
-    const handleImageError = (event: Event, index: number, type: 'sample' | 'gallery') => {
+    const handleImageError = (event: Event, index: number, type: 'slider' | 'gallery') => {
       const img = event.target as HTMLImageElement;
       img.style.display = 'none';
 
@@ -316,15 +361,43 @@ export default defineComponent({
       img.parentNode?.appendChild(placeholder);
 
       // Track failed images
-      if (type === 'sample') {
-        failedSampleImages.value.push(index);
+      if (type === 'slider') {
+        failedSliderImages.value.push(index);
       } else {
         failedGalleryImages.value.push(index);
       }
     };
 
+    // Pause animation when tab is not visible to save resources
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Stop animation when tab is not visible
+        if (animationFrame.value) {
+          cancelAnimationFrame(animationFrame.value);
+          animationFrame.value = null;
+        }
+      } else {
+        // Resume animation when tab becomes visible
+        if (!animationFrame.value) {
+          startScrollAnimation();
+        }
+      }
+    };
+
+    // Lifecycle hooks
     onMounted(() => {
       fetchImages();
+
+      // Add visibility change listener
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+    });
+
+    onUnmounted(() => {
+      // Clean up
+      if (animationFrame.value) {
+        cancelAnimationFrame(animationFrame.value);
+      }
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     });
 
     return {
@@ -334,9 +407,11 @@ export default defineComponent({
       userDisplayName,
       logout,
       loading,
-      sampleImages,
+      allImages,
       galleryImages,
-      handleImageError
+      handleImageError,
+      displayImages,
+      sliderTrack
     };
   }
 });
@@ -354,7 +429,6 @@ export default defineComponent({
 }
 
 /* Hero Section Styles */
-
 .hero-section {
   padding-top: 100px;
   padding-right: 1.5rem;
@@ -413,35 +487,93 @@ export default defineComponent({
   letter-spacing: 1px;
 }
 
-.image-showcase {
+/* Slider Styles for continuous scrolling */
+.slider-container {
+  position: relative;
+  width: 100%;
+  max-width: 1000px;
+  height: 220px;
+  margin: 0 auto 2rem;
+  overflow: hidden;
+  border-radius: 10px;
+  box-shadow:
+    0 0 20px rgba(0, 0, 0, 0.5),
+    0 0 30px rgba(0, 150, 255, 0.2);
+}
+
+.loading-container {
   display: flex;
   justify-content: center;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1rem;
+  min-height: 220px;
 }
 
-.sample-image {
-  width: 300px;
-  height: 200px;
-  position: relative;
-  overflow: hidden;
-  border-radius: 8px;
-  box-shadow:
-    0 0 15px rgba(0, 150, 255, 0.2),
-    0 0 30px rgba(0, 0, 0, 0.4);
+.slider-track {
+  display: flex;
+  flex-wrap: nowrap;
+  width: fit-content; /* Allow the track to expand based on content */
 }
 
-.sample-img, .gallery-img {
+.slider-item {
+  flex: 0 0 250px; /* Fixed width for each slide */
+  padding: 0.5rem;
+  box-sizing: border-box;
+}
+
+.slider-img {
   width: 100%;
-  height: 100%;
+  height: 200px;
   object-fit: cover;
   border-radius: 8px;
+  border: 1px solid rgba(50, 100, 150, 0.4);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   transition: transform 0.3s ease;
 }
 
-.sample-img:hover, .gallery-img:hover {
-  transform: scale(1.05);
+.slider-img:hover {
+  transform: scale(1.03);
+  border-color: rgba(0, 150, 255, 0.6);
+  box-shadow: 0 0 15px rgba(0, 150, 255, 0.4);
+}
+
+.image-placeholder {
+  width: 100%;
+  height: 200px;
+  background: linear-gradient(
+    45deg,
+    rgba(30, 30, 60, 0.8),
+    rgba(60, 30, 90, 0.8)
+  );
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+}
+
+.placeholder-text {
+  font-size: 1.2rem;
+  color: rgba(200, 200, 255, 0.7);
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.action-button {
+  padding: 1rem 2.5rem;
+  font-size: 1rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: all 0.3s;
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
 }
 
 /* Navbar Styles */
@@ -691,44 +823,25 @@ export default defineComponent({
   .hero-section {
     padding-top: 5rem;
   }
+
+  .slider-item {
+    flex: 0 0 200px; /* Smaller slide width on tablets */
+  }
 }
 
-.image-placeholder {
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    45deg,
-    rgba(30, 30, 60, 0.8),
-    rgba(60, 30, 90, 0.8)
-  );
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
+@media (max-width: 480px) {
+  .slider-item {
+    flex: 0 0 160px; /* Even smaller slide width on phones */
+  }
 
-.placeholder-text {
-  font-size: 1.2rem;
-  color: rgba(200, 200, 255, 0.7);
-}
+  .neon-header h1 {
+    font-size: 3rem;
+    letter-spacing: 5px;
+  }
 
-.action-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 1.5rem;
-  margin-top: 2rem;
-}
-
-.action-button {
-  padding: 1rem 2.5rem;
-  font-size: 1rem;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  border-radius: 4px;
-  font-weight: 500;
-  transition: all 0.3s;
-  text-decoration: none;
-  position: relative;
-  overflow: hidden;
+  .tagline {
+    font-size: 1.2rem;
+  }
 }
 
 .login-btn {
@@ -1047,30 +1160,18 @@ export default defineComponent({
   }
 }
 
-/* Responsive Styles */
-@media (max-width: 768px) {
-  .neon-header h1 {
-    font-size: 3rem;
-    letter-spacing: 5px;
-  }
+.easter-egg {
+  opacity: 0.75;
+  font-size: 10px;
+  margin-left: 8px;
+  color: rgba(100, 100, 130, 0.6) !important;
+  text-decoration: none;
+  transition: all 0.3s;
+}
 
-  .tagline {
-    font-size: 1.2rem;
-  }
-
-  .image-showcase {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .sample-image {
-    width: 100%;
-    max-width: 300px;
-    margin-bottom: 1rem;
-  }
-
-  .gallery-grid {
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  }
+.easter-egg:hover {
+  opacity: 0.4;
+  color: rgba(255, 0, 0, 0.7) !important;
+  text-shadow: none !important;
 }
 </style>

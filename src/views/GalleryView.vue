@@ -130,9 +130,6 @@
               >
                 <span class="action-icon">❤️</span> Like
               </button>
-              <a :href="'/imagegen?prompt=' + encodeURIComponent(selectedImage.title)" class="sidebar-action-btn remix-btn">
-                <span class="action-icon">🔄</span> Use Prompt
-              </a>
             </div>
           </div>
         </div>

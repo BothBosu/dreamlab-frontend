@@ -8,6 +8,7 @@ import ErrorView from '@/views/ErrorView.vue'
 import LandingView from '@/views/LandingView.vue'
 import DashboardView from '@/views/DashboardView.vue'
 import UserProfileView from '@/views/UserProfileView.vue'
+import JumpscareView from '@/views/JumpscareView.vue'
 
 /**
  * TODO: Don't forget to change the requiresAuth meta to true when actually deploying the app
@@ -64,6 +65,11 @@ const routes: Array<RouteRecordRaw> = [
     name: 'not-found',
     component: ErrorView,
     meta: { requiresAuth: false }
+  },
+  {
+    path: '/secret',
+    name: 'Jumpscare',
+    component: JumpscareView
   }
 ]
 
