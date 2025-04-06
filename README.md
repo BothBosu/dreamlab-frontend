@@ -4,6 +4,8 @@ Dream Lab is a community-driven AI image generation platform. This is the fronte
 
 ![0406](https://github.com/user-attachments/assets/0b12eb6d-07c5-48cf-85dc-5c9c7a9d237d)
 
+![dl demo](https://github.com/user-attachments/assets/4db79fe3-011f-4199-aea9-858385319182)
+
 ## 🚀 Features
 
 - 🧠 **AI Image Generation**
@@ -54,7 +56,7 @@ src/
 - **Szuchihsu**: Gallery, dashboard, AWS S3 integration
 
 ## 🔗 Backend
-Connects to dreamlab-backend for authentication, image services, and gallery APIs.
+Connects to [dreamlab-backend](https://github.com/BothBosu/dreamlab-backend) for authentication, image services, and gallery APIs.
 
 ## 🛠 Project Setup
 
