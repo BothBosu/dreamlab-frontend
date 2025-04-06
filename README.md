@@ -1,35 +1,67 @@
-# frontend
+# Dream Lab — Frontend
 
-This template should help get you started developing with Vue 3 in Vite.
+Dream Lab is a community-driven AI image generation platform. This is the frontend repo built with Vue.js and TypeScript, offering a smooth and interactive interface for users to create and share AI-generated images.
+![0406](https://github.com/user-attachments/assets/42a04200-761a-4714-9495-eec24b5b3dfd)
 
-## Recommended IDE Setup
+## 🚀 Features
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+- 🧠 **AI Image Generation**
+  - Prompt-based image generation
+  - Style customization (Photorealistic, Oil Painting, Anime, etc.)
+  - Aspect ratio selection
 
-## Customize configuration
+- 🖼 **Image Management**
+  - Personal dashboard to manage your creations
+  - Image download functionality
+  - Uploads stored securely with metadata
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+- 🫂 **Community Gallery**
+  - Public gallery for discovering AI art
+  - Like feature to show appreciation
+  - Share creations with the world
 
-## Project Setup
+- 👤 **User Management**
+  - Registration, login, and secure authentication
+  - Password changing
+  - Profile picture selection
 
-```sh
+## 🔧 Tech Stack
+
+- ⚙️ Framework: Vue.js 3
+- 💬 Language: TypeScript
+- 🧠 State Management: Pinia
+- 🌐 Styling: CSS3 
+
+## 📁 Folder Structure
+
+```bash
+src/
+├── assets/        # Static assets like images or icons
+├── components/    # Reusable Vue components
+├── router/        # Vue Router config
+├── stores/        # Pinia stores for global state
+├── types/         # TypeScript type definitions
+├── views/         # Route-based Vue pages
+├── App.vue        # Main Vue app wrapper
+└── main.ts        # App entry point
+
+## 🧑‍💻 Developer Contributions
+
+- **Pitipat**: Project management, landing page, login & register page, deployment
+- **Pawin**: Image generation page, user management system
+- **Szuchihsu**: Gallery, dashboard, AWS S3 integration
+
+## 🔗 Backend
+Connects to dreamlab-backend for authentication, image services, and gallery APIs.
+
+## 🛠 Project Setup
+
+```bash
 npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
 npm run dev
-```
 
 ### Compile and Minify for Production
 
 ```sh
 npm run build
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
 ```
