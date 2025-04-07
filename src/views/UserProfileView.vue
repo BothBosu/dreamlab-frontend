@@ -310,9 +310,9 @@ export default defineComponent({
       try {
         const response = await axios.post(
           // local
-          // 'http://localhost:8080/api/users/update-password',
+          'http://localhost:8080/api/users/update-password',
           // deploy
-          'https://dreamlab-ai.online/api/users/update-password',
+          // 'https://dreamlab-ai.online/api/users/update-password',
           {
             currentPassword: currentPassword.value,
             newPassword: newPassword.value,

@@ -191,16 +191,16 @@ export default defineComponent({
     async fetchImages() {
       const response = await axios.get(
         // local
-        // "http://localhost:8080/api/images/all",
+        "http://localhost:8080/api/images/all",
         // deploy
-        "https://dreamlab-ai.online/api/images/all"
+        // "https://dreamlab-ai.online/api/images/all"
       );
       this.images = await Promise.all(response.data.map(async (img: any) => {
         const likeCountRes = await axios.get(
           // local
-          // `http://localhost:8080/api/likes/${img.id}/count`,
+          `http://localhost:8080/api/likes/${img.id}/count`,
           // deploy
-          `https://dreamlab-ai.online/api/likes/${img.id}/count`
+          // `https://dreamlab-ai.online/api/likes/${img.id}/count`
         );
         return {
           id: img.id,
@@ -226,17 +226,17 @@ export default defineComponent({
       try {
         await axios.post(
           // local
-          // `http://localhost:8080/api/likes/${image.id}/toggle`,
+          `http://localhost:8080/api/likes/${image.id}/toggle`,
           // deploy
-          `https://dreamlab-ai.online/api/likes/${image.id}/toggle`,
+          // `https://dreamlab-ai.online/api/likes/${image.id}/toggle`,
           {},
           { withCredentials: true }
         );
         const res = await axios.get(
           // local
-          // `http://localhost:8080/api/likes/${image.id}/count`,
+          `http://localhost:8080/api/likes/${image.id}/count`,
           // deploy
-          `https://dreamlab-ai.online/api/likes/${image.id}/count`
+          // `https://dreamlab-ai.online/api/likes/${image.id}/count`
         );
 
         image.likes = res.data;

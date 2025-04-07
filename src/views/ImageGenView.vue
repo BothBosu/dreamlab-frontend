@@ -436,10 +436,10 @@ export default defineComponent({
       try {
         const response = await axios.post(
           // local
-          // 'http://localhost:8080/api/images/generate',
+          'http://localhost:8080/api/images/generate',
 
           // deploy
-          'https://dreamlab-ai.online/api/images/generate',
+          // 'https://dreamlab-ai.online/api/images/generate',
 
           {
             prompt: prompt.value,
@@ -512,10 +512,10 @@ export default defineComponent({
       try {
         const response = await axios.post(
           // local
-          // 'http://localhost:8080/api/images/save',
+          'http://localhost:8080/api/images/save',
 
           // deploy
-          'https://dreamlab-ai.online/api/images/save',
+          // 'https://dreamlab-ai.online/api/images/save',
           {
             imageUrl: generatedImage.value,
             inputPrompt: prompt.value
@@ -557,10 +557,10 @@ export default defineComponent({
       try {
         const saveResponse = await axios.post(
           // local
-          // 'http://localhost:8080/api/images/save',
+          'http://localhost:8080/api/images/save',
 
           // deploy
-          'https://dreamlab-ai.online/api/images/save',
+          // 'https://dreamlab-ai.online/api/images/save',
           {
             imageUrl: generatedImage.value,
             inputPrompt: prompt.value
@@ -572,9 +572,9 @@ export default defineComponent({
           const imageId = saveResponse.data.imageId;
           await axios.patch(
             // local
-            // `http://localhost:8080/api/images/${imageId}/share?isPublic=true`,
+            `http://localhost:8080/api/images/${imageId}/share?isPublic=true`,
             // deploy
-            `https://dreamlab-ai.online/api/images/${imageId}/share?isPublic=true`,
+            // `https://dreamlab-ai.online/api/images/${imageId}/share?isPublic=true`,
             {},
             { withCredentials: true }
           );

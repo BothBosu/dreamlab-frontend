@@ -258,9 +258,9 @@ export default defineComponent({
         // Fetch all images from your existing endpoint
         const response = await axios.get(
           // local
-          // "http://localhost:8080/api/images/all",
+          "http://localhost:8080/api/images/all",
           // deploy
-          "https://dreamlab-ai.online/api/images/all"
+          // "https://dreamlab-ai.online/api/images/all"
         );
 
         // Process images with like counts
@@ -268,9 +268,9 @@ export default defineComponent({
           try {
             const likeCountRes = await axios.get(
               // local
-              // `http://localhost:8080/api/likes/${img.id}/count`,
+              `http://localhost:8080/api/likes/${img.id}/count`,
               // deploy
-              `https://dreamlab-ai.online/api/likes/${img.id}/count`
+              // `https://dreamlab-ai.online/api/likes/${img.id}/count`
             );
             return {
               id: img.id,

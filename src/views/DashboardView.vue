@@ -235,9 +235,9 @@ export default defineComponent({
         const newSharedStatus = !image.public;
         await axios.patch(
           // local
-          // `http://localhost:8080/api/images/${image.id}/share?isPublic=${newSharedStatus}`,
+          `http://localhost:8080/api/images/${image.id}/share?isPublic=${newSharedStatus}`,
           // deploy
-          `https://dreamlab-ai.online/api/images/${image.id}/share?isPublic=${newSharedStatus}`,
+          // `https://dreamlab-ai.online/api/images/${image.id}/share?isPublic=${newSharedStatus}`,
           {},
           { withCredentials: true }
         );
@@ -280,9 +280,9 @@ export default defineComponent({
       try {
         await axios.delete(
           // local
-          // `http://localhost:8080/api/images/${imageToDelete.value.id}`,
+          `http://localhost:8080/api/images/${imageToDelete.value.id}`,
           // deploy
-          `https://dreamlab-ai.online/api/images/${imageToDelete.value.id}`,
+          // `https://dreamlab-ai.online/api/images/${imageToDelete.value.id}`,
           { withCredentials: true }
         );
 

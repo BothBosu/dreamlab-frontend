@@ -19,9 +19,9 @@ export const useAuthStore = defineStore('auth', {
     try {
       const response = await axios.post<LoginResponse>(
         // local
-        // 'http://localhost:8080/api/auth/login',
+        'http://localhost:8080/api/auth/login',
         // deploy
-        'https://dreamlab-ai.online/api/auth/login',
+        // 'https://dreamlab-ai.online/api/auth/login',
           { username, password },
         { withCredentials: true }
       );
@@ -55,9 +55,9 @@ export const useAuthStore = defineStore('auth', {
     try {
       const response = await axios.post<RegisterResponse>(
         // local
-        // 'http://localhost:8080/api/auth/register',
+        'http://localhost:8080/api/auth/register',
         //  deploy
-        'https://dreamlab-ai.online/api/auth/register',
+        // 'https://dreamlab-ai.online/api/auth/register',
           { username, password }
       );
 
@@ -91,12 +91,12 @@ export const useAuthStore = defineStore('auth', {
 
         // Verify with backend
         // local
-        // const response = await axios.get<LoginResponse>('http://localhost:8080/api/auth/status');
+        const response = await axios.get<LoginResponse>('http://localhost:8080/api/auth/status');
         // deploy
-        const response = await axios.get<LoginResponse>(
-          'https://dreamlab-ai.online/api/auth/status',
-          { withCredentials: true }
-        );
+        // const response = await axios.get<LoginResponse>(
+        //   'https://dreamlab-ai.online/api/auth/status',
+        //   { withCredentials: true }
+        // );
         if (response.data && response.data.username) {
           return true;
         } else {
