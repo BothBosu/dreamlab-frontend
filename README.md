@@ -1,6 +1,6 @@
 # Dream Lab — Frontend
 
-Dream Lab is a community-driven AI image generation platform. This is the frontend repo built with Vue.js and TypeScript, offering a smooth and interactive interface for users to create and share AI-generated images.
+Dream Lab is a community-driven AI image generation platform. This frontend repo is built with Vue and TypeScript, offering a smooth and interactive interface for users to create and share AI-generated images.
 
 ![0406](https://github.com/user-attachments/assets/0b12eb6d-07c5-48cf-85dc-5c9c7a9d237d)
 
